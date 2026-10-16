@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
@@ -63,6 +64,7 @@ from .dataset_service import DatasetAcquisitionService
 # AUTHENTICATION VIEWS
 # ==========================================
 
+@csrf_exempt
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def register_user(request):
@@ -102,6 +104,7 @@ def register_user(request):
     return Response({'message': 'Registration successful.', 'token': token.key, 'user': serializer.data}, status=status.HTTP_201_CREATED)
 
 
+@csrf_exempt
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def login_user(request):

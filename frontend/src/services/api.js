@@ -1,22 +1,26 @@
 import axios from 'axios';
 
 let envBase = import.meta.env.VITE_API_BASE;
-let API_BASE = '/api';
+let ROOT_BASE = '';
 if (envBase) {
-  const cleanBase = envBase.replace(/\/+$/, '');
-  API_BASE = cleanBase.endsWith('/api') ? cleanBase : `${cleanBase}/api`;
+  const clean = envBase.replace(/\/+$/, '');
+  ROOT_BASE = clean.endsWith('/api') ? clean.slice(0, -4) : clean;
 }
 
 const apiClient = axios.create({
-  baseURL: API_BASE,
+  baseURL: ROOT_BASE || undefined,
   withCredentials: true,
   headers: {
     'Accept': 'application/json',
   },
 });
 
-// Interceptor for Tab-Scoped Token Auth + CSRF cookie
+// Interceptor for Route/API Prefix + Tab-Scoped Token Auth + CSRF cookie
 apiClient.interceptors.request.use((config) => {
+  // 1. Guarantee /api prefix for all endpoints
+  if (config.url && !config.url.startsWith('/api') && !config.url.startsWith('http')) {
+    config.url = `/api${config.url.startsWith('/') ? '' : '/'}${config.url}`;
+  }
   // 1. Tab-isolated & Route-aware Token Authentication
   if (typeof window !== 'undefined') {
     let token = null;
