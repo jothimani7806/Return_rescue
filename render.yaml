@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: return-rescue-backend
+    env: python
+    rootDir: backend
+    buildCommand: bash build.sh
+    startCommand: gunicorn return_rescue.wsgi:application --bind 0.0.0.0:$PORT
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: "3.11.9"

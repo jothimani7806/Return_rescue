@@ -72,4 +72,11 @@ python run_single_port.py --port 8000
 - **Manager**: `manager` / `Manager@123` (Default Name: *Jothimani*)
 - **Customer**: `customer` / `Customer@123`
 - **Admin**: `admin` / `Admin@123`
->>>>>>> abc83ea (feat: complete return rescue platform with dual-portal single-port architecture, 3D login, profile settings, and return queue management)
+
+---
+
+## 🌐 Cloud Deployment (Vercel + Render)
+For deploying to the cloud:
+- **Frontend on Vercel**: Import the repository on Vercel, set `VITE_API_BASE` to your backend URL.
+- **Backend on Render / Railway**: Connect GitHub repo, use `bash build.sh` as build command and `gunicorn return_rescue.wsgi:application` as start command.
+- **Full Guide**: See [DEPLOYMENT.md](DEPLOYMENT.md) for step-by-step instructions.
