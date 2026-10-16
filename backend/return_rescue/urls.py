@@ -8,6 +8,7 @@ from core.views import serve_react_app
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('core.urls')),
+    path('auth/', include('core.urls')),
     # Media files (uploaded customer return photos)
     re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
     # Compiled frontend assets and root statics
@@ -18,7 +19,7 @@ urlpatterns = [
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
-# SPA fallback: Catch all remaining non-API, non-admin, non-media routes and serve React index.html
+# SPA fallback: Catch all remaining non-API, non-auth, non-admin, non-media routes and serve React index.html
 urlpatterns += [
-    re_path(r'^(?!api/|admin/|media/).*$', serve_react_app),
+    re_path(r'^(?!api/|auth/|admin/|media/).*$', serve_react_app),
 ]

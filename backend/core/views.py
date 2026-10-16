@@ -910,19 +910,33 @@ def serve_react_app(request):
             with open(index_html, 'r', encoding='utf-8') as f:
                 return HttpResponse(f.read(), content_type='text/html')
 
+    # When backend is running in cloud mode (Render) where frontend is hosted on Vercel
     return HttpResponse(
-        """
-        <!DOCTYPE html>
+        """<!DOCTYPE html>
         <html>
-        <head><title>Return Rescue - Initializing</title></head>
-        <body style="background:#080c16;color:#e2e8f0;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
-          <div style="text-align:center;padding:24px;border:1px solid #1e293b;border-radius:16px;background:#0f172a;">
-            <h2>Return Rescue Frontend</h2>
-            <p style="color:#94a3b8;">Frontend build not found. Run <code>npm run build</code> in the frontend directory.</p>
+        <head>
+          <title>Return Rescue API - Operational</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <style>
+            body { background: #080c16; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+            .card { text-align: center; max-width: 480px; width: 100%; padding: 40px 32px; border: 1px solid rgba(99,102,241,0.25); border-radius: 20px; background: rgba(15,23,42,0.9); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7); }
+            h2 { color: #f8fafc; margin-top: 12px; margin-bottom: 8px; font-size: 24px; font-weight: 700; }
+            .badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); border-radius: 9999px; font-size: 13px; font-weight: 600; }
+            .badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; }
+            p { color: #94a3b8; font-size: 15px; margin: 12px 0; line-height: 1.6; }
+            a { color: #818cf8; text-decoration: none; font-weight: 600; }
+            a:hover { text-decoration: underline; }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <span class="badge">API System Operational</span>
+            <h2>Return Rescue API Backend</h2>
+            <p>Django REST Framework API is running and healthy.</p>
+            <p>REST API root: <a href="/api/">/api/</a></p>
           </div>
         </body>
-        </html>
-        """,
-        status=503,
+        </html>""",
+        status=200,
         content_type='text/html'
     )
