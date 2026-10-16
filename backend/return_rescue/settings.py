@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import importlib
+import importlib.util
 import os
 from pathlib import Path
 
@@ -57,15 +59,12 @@ MIDDLEWARE = [
 ]
 
 # Production Static Files (WhiteNoise) when installed
-try:
-    import whitenoise
+if importlib.util.find_spec('whitenoise'):
     MIDDLEWARE.insert(
         MIDDLEWARE.index('django.middleware.security.SecurityMiddleware') + 1,
         'whitenoise.middleware.WhiteNoiseMiddleware'
     )
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-except ImportError:
-    pass
 
 ROOT_URLCONF = 'return_rescue.urls'
 
@@ -99,16 +98,13 @@ DATABASES = {
 
 # Dynamic PostgreSQL support for Render / Railway / Supabase
 DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL:
-    try:
-        import dj_database_url
-        DATABASES['default'] = dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
-    except ImportError:
-        pass
+if DATABASE_URL and importlib.util.find_spec('dj_database_url'):
+    dj_database_url = importlib.import_module('dj_database_url')
+    DATABASES['default'] = dj_database_url.config(
+        default=DATABASE_URL,
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 
 
 # Password validation
