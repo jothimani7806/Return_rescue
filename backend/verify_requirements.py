@@ -373,11 +373,12 @@ def run_tests():
         f"Cust view status: {cust_view_data.get('status')}"
     )
 
+    percentage = round((passed / total * 100)) if total > 0 else 0
     print("=" * 70)
-    print(f"VERIFICATION COMPLETE: {passed}/{total} TESTS PASSED ({round(passed/total*100)}%)")
+    print(f"VERIFICATION COMPLETE: {passed}/{total} TESTS PASSED ({percentage}%)")
     print("=" * 70)
 
-    return passed == total
+    return total > 0 and passed == total
 
 if __name__ == '__main__':
     success = run_tests()
