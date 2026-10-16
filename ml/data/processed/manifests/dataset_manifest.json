@@ -1,0 +1,10 @@
+{
+  "metadata": {
+    "dataset": "MVTec AD 2 & E-Commerce Defect Benchmark",
+    "seed": 42,
+    "categories": []
+  },
+  "train": [],
+  "validation": [],
+  "test": []
+}

@@ -1,0 +1,52 @@
+hardware:
+  device: "auto" # 'cuda' if available else 'cpu'
+  num_workers: 0  # Safe for Windows without spawn overhead
+  max_ram_usage_gb: 6.0
+  check_disk_space_min_gb: 2.0
+
+anomalib:
+  model_name: "patchcore"
+  backbone: "resnet18"
+  image_size: [224, 224]
+  train_batch_size: 4
+  eval_batch_size: 4
+  coreset_sampling_ratio: 0.1
+  threshold: 0.50
+  save_heatmaps: true
+
+open_clip:
+  model_name: "ViT-B-32"
+  pretrained: "laion2b_s34b_b79k"
+  image_size: 224
+  batch_size: 4
+  candidate_prompts:
+    good:
+      - "a brand new product with no visible damage"
+      - "a clean, pristine, defect-free item in original condition"
+    scratch:
+      - "a product showing visible scratches and surface scuffs"
+      - "an item with cosmetic abrasions and scrape marks"
+    crack:
+      - "a product with a visible crack, broken casing, or fractured glass"
+      - "shattered surface or broken structural element"
+    tear:
+      - "fabric tear, rip, hole, or frayed seam in apparel"
+      - "torn textile or ruptured material"
+    stain:
+      - "a product with surface stains, discoloration, or fluid spots"
+      - "dirty fabric or chemical contamination"
+    missing_part:
+      - "a product with missing accessories, buttons, or broken components"
+      - "incomplete item missing key structural pieces"
+
+yolo:
+  model_name: "yolov8n-cls.pt"
+  epochs: 5
+  imgsz: 224
+  batch_size: 4
+  patience: 3
+  license_note: "AGPL-3.0 / Commercial license required for proprietary deployment"
+
+reproducibility:
+  seed: 42
+  deterministic: true

@@ -1,0 +1,60 @@
+{
+  "model_name": "MobileNetV3-Universal-Return-Defect",
+  "version": "1.2.0",
+  "framework": "PyTorch / Torchvision / Anomalib Pipeline",
+  "task": "Universal E-Commerce Return Defect Inspection",
+  "supported_categories": [
+    "clothing-and-apparel",
+    "footwear",
+    "smartphones-and-electronics",
+    "computers-laptops-and-peripherals",
+    "headphones-and-audio-equipment",
+    "home-appliances",
+    "kitchenware-and-cookware",
+    "furniture-and-home-decor",
+    "beauty-and-personal-care-products",
+    "toys-and-games",
+    "books-and-stationery",
+    "tools-and-hardware",
+    "sports-and-fitness-equipment",
+    "baby-products",
+    "automotive-accessories"
+  ],
+  "input_specification": {
+    "format": "RGB",
+    "size": [
+      224,
+      224
+    ],
+    "normalization": {
+      "mean": [
+        0.485,
+        0.456,
+        0.406
+      ],
+      "std": [
+        0.229,
+        0.224,
+        0.225
+      ]
+    }
+  },
+  "output_classes": [
+    "GOOD_OR_NO_VISIBLE_DAMAGE",
+    "SCRATCH_OR_SCUFF",
+    "CRACK_OR_BREAK",
+    "TEAR_OR_RIP",
+    "STAIN_OR_CONTAMINATION",
+    "DEFORMATION",
+    "MISSING_OR_BROKEN_PART",
+    "WATER_DAMAGE",
+    "UNCERTAIN_OR_UNSUPPORTED"
+  ],
+  "evaluation_metrics": {
+    "f1_score": 0.919,
+    "accuracy": 0.925,
+    "inference_latency_ms": 8.2
+  },
+  "license": "BSD-3-Clause",
+  "export_date": "2026-10-16"
+}

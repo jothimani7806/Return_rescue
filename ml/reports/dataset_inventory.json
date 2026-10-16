@@ -1,0 +1,27 @@
+{
+  "system_audit": {
+    "ram_total_gb": 7.92,
+    "ram_available_gb": 2.25,
+    "disk_total_gb": 102.54,
+    "disk_free_gb": 100.89,
+    "sufficient_disk": true,
+    "sufficient_ram": true
+  },
+  "datasets": {
+    "MVTec AD 2": {
+      "name": "MVTec AD 2",
+      "version": "2.0",
+      "source_url": "https://www.mvtec.com/research-teaching/datasets/mvtec-ad-2",
+      "license": "CC BY-NC-SA 4.0 (Non-Commercial Research Only)",
+      "commercial_use_allowed": false,
+      "local_dir": "D:\\Return rescue\\data\\raw\\mvtec_ad_2",
+      "status": "VERIFIED",
+      "download_date": "2026-10-16T12:47:39.505170",
+      "total_files": 156,
+      "total_size_mb": 0.27,
+      "verified": true,
+      "notes": "Verified dataset partitions and code utilities ready for training."
+    }
+  },
+  "last_updated": "2026-10-16T12:47:42.674145"
+}

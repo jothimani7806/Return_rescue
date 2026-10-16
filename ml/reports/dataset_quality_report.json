@@ -1,0 +1,7 @@
+{
+  "status": "PASSED",
+  "verified_image_mask_pairs": 54,
+  "total_anomalous_images_checked": 54,
+  "issues_count": 0,
+  "issues": []
+}

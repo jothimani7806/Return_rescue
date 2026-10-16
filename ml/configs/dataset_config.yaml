@@ -1,0 +1,22 @@
+dataset:
+  name: "MVTec AD 2"
+  version: "2.0"
+  source_url: "https://www.mvtec.com/research-teaching/datasets/mvtec-ad-2"
+  license: "CC BY-NC-SA 4.0 (Non-Commercial Research Only)"
+  commercial_use_allowed: false
+  code_utils_url: "https://www.mydrive.ch/shares/121509/40399aba7a28cfc47a7d804553228b25/download/466656866-1743171051/MVTecAD2_public_code_utils.tar.gz"
+  raw_dir: "data/raw/mvtec_ad_2"
+  processed_dir: "data/processed"
+  supported_extensions: [".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tif", ".tiff"]
+  seed: 42
+  splits:
+    train_ratio: 0.70
+    val_ratio: 0.15
+    test_ratio: 0.15
+  categories:
+    - "smartphones-and-electronics"
+    - "clothing-and-apparel"
+    - "footwear"
+    - "home-appliances"
+    - "kitchenware-and-cookware"
+    - "tools-and-hardware"

@@ -1,0 +1,17 @@
+{
+  "experiment": "A_ANOMALIB_ANOMALY_DETECTION",
+  "timestamp": "2026-10-16T12:52:12Z",
+  "model_architecture": "PatchCore ResNet18 Memory Bank",
+  "training_samples_normal": 18,
+  "test_samples": 78,
+  "metrics": {
+    "accuracy": 0.3077,
+    "auroc": 0.6667,
+    "f1_score": 0.0,
+    "precision": 0.0,
+    "recall": 0.0,
+    "duration_seconds": 0.14
+  },
+  "checkpoint_path": "D:\\Return rescue\\ml\\models\\trained\\anomalib_patchcore.json",
+  "status": "COMPLETED"
+}

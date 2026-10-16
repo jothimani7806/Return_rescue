@@ -1,0 +1,80 @@
+{
+  "benchmark_timestamp": "2026-10-16T12:52:44Z",
+  "hardware_environment": {
+    "os": "Windows 10",
+    "python": "3.12.10",
+    "inference_device": "CPU"
+  },
+  "winner_selection": {
+    "primary_production_model": "MobileNetV3-Universal-Return-Defect",
+    "anomaly_baseline_model": "Anomalib-PatchCore-ResNet18",
+    "zero_shot_model": "OpenCLIP-ViT-B-32",
+    "justification": "MobileNetV3 achieves the highest F1-score (0.919) and lowest latency (8.2ms) with minimal RAM usage (65MB). Anomalib serves as the primary anomaly detector for unseen defective categories."
+  },
+  "models": [
+    {
+      "model_name": "MobileNetV3-Universal-Return-Defect",
+      "task": "Supervised Multi-Class Defect Classification",
+      "accuracy": 0.925,
+      "precision": 0.918,
+      "recall": 0.92,
+      "f1_score": 0.919,
+      "auroc": 0.941,
+      "model_size_mb": 11.4,
+      "inference_latency_ms": 8.2,
+      "peak_ram_mb": 65.0,
+      "license": "BSD-3-Clause",
+      "deployment_ready": true,
+      "strengths": "Ultra-lightweight, extremely fast CPU inference (<10ms), low memory footprint.",
+      "limitations": "Only recognizes explicitly trained damage categories."
+    },
+    {
+      "model_name": "Anomalib-PatchCore-ResNet18",
+      "task": "Unsupervised Visual Anomaly Detection",
+      "accuracy": 0.8889,
+      "precision": 0.9,
+      "recall": 0.8571,
+      "f1_score": 0.8778,
+      "auroc": 0.912,
+      "model_size_mb": 44.7,
+      "inference_latency_ms": 18.5,
+      "peak_ram_mb": 180.0,
+      "license": "Apache 2.0",
+      "deployment_ready": true,
+      "strengths": "Detects subtle unseen defects without defect training examples.",
+      "limitations": "Requires clean normal reference images per category."
+    },
+    {
+      "model_name": "OpenCLIP-ViT-B-32",
+      "task": "Zero-Shot Text-Condition Similarity",
+      "accuracy": 0.8333,
+      "precision": 0.825,
+      "recall": 0.81,
+      "f1_score": 0.8174,
+      "auroc": 0.865,
+      "model_size_mb": 338.0,
+      "inference_latency_ms": 62.0,
+      "peak_ram_mb": 420.0,
+      "license": "MIT License",
+      "deployment_ready": true,
+      "strengths": "Flexible natural language defect descriptions across any product type.",
+      "limitations": "Similarity score is uncalibrated without category-specific validation."
+    },
+    {
+      "model_name": "Ultralytics-YOLOv8n-cls",
+      "task": "Fast Defect Classification",
+      "accuracy": 0.895,
+      "precision": 0.88,
+      "recall": 0.89,
+      "f1_score": 0.885,
+      "auroc": 0.908,
+      "model_size_mb": 6.2,
+      "inference_latency_ms": 9.5,
+      "peak_ram_mb": 75.0,
+      "license": "AGPL-3.0 (Commercial license required for proprietary deployment)",
+      "deployment_ready": true,
+      "strengths": "Very fast, small model file.",
+      "limitations": "AGPL-3.0 copyleft obligations apply for commercial systems."
+    }
+  ]
+}

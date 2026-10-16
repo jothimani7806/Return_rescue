@@ -1,0 +1,225 @@
+/* Return Rescue 3D Animation & Logistics Scene Styles */
+
+.scene-viewport {
+  perspective: 1200px;
+  perspective-origin: 50% 50%;
+  transform-style: preserve-3d;
+}
+
+/* 3D Parcel Assembly */
+.parcel-3d-stage {
+  transform-style: preserve-3d;
+  transition: transform 0.15s cubic-bezier(0.2, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.parcel-body {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  transform-style: preserve-3d;
+  animation: parcelFloat 6s ease-in-out infinite;
+}
+
+@keyframes parcelFloat {
+  0%, 100% {
+    transform: translateY(0px) rotateX(12deg) rotateY(-20deg);
+  }
+  50% {
+    transform: translateY(-14px) rotateX(18deg) rotateY(-8deg);
+  }
+}
+
+.box-face {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  box-sizing: border-box;
+  backface-visibility: visible;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.35);
+}
+
+/* Realistic cardboard faces */
+.box-front {
+  background: linear-gradient(135deg, #bfa076 0%, #a48154 100%);
+  transform: translateZ(70px);
+}
+
+.box-back {
+  background: linear-gradient(135deg, #96754b 0%, #83643d 100%);
+  transform: rotateY(180deg) translateZ(70px);
+}
+
+.box-right {
+  background: linear-gradient(135deg, #a48154 0%, #8f6d42 100%);
+  transform: rotateY(90deg) translateZ(70px);
+}
+
+.box-left {
+  background: linear-gradient(135deg, #b5956a 0%, #99784b 100%);
+  transform: rotateY(-90deg) translateZ(70px);
+}
+
+.box-top {
+  background: linear-gradient(135deg, #cdb087 0%, #b8986c 100%);
+  transform: rotateX(90deg) translateZ(70px);
+}
+
+.box-bottom {
+  background: #6e522e;
+  transform: rotateX(-90deg) translateZ(70px);
+  box-shadow: 0 40px 60px rgba(0, 0, 0, 0.7);
+}
+
+/* Shipping Tape */
+.tape-strip-h {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 28px;
+  transform: translateY(-50%);
+  background: rgba(220, 200, 160, 0.55);
+  border-top: 1px dashed rgba(120, 90, 40, 0.4);
+  border-bottom: 1px dashed rgba(120, 90, 40, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: monospace;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: rgba(70, 50, 20, 0.7);
+  pointer-events: none;
+}
+
+.tape-strip-v {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 28px;
+  transform: translateX(-50%);
+  background: rgba(220, 200, 160, 0.55);
+  border-left: 1px dashed rgba(120, 90, 40, 0.4);
+  border-right: 1px dashed rgba(120, 90, 40, 0.4);
+  pointer-events: none;
+}
+
+/* Shipping Label */
+.shipping-label {
+  position: absolute;
+  top: 18px;
+  left: 16px;
+  width: 65px;
+  height: 85px;
+  background: #fdfdfd;
+  border-radius: 3px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  padding: 5px;
+  color: #111;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Sweeping Laser Beam */
+.laser-scanning-beam {
+  position: absolute;
+  left: -20px;
+  right: -20px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, #22d3ee 30%, #10b981 70%, transparent 100%);
+  box-shadow: 0 0 16px 2px #22d3ee, 0 0 30px 4px rgba(16, 185, 129, 0.6);
+  pointer-events: none;
+  animation: laserSweep 3.5s ease-in-out infinite;
+  z-index: 25;
+}
+
+@keyframes laserSweep {
+  0% {
+    top: 5%;
+    opacity: 0.1;
+  }
+  20% {
+    opacity: 1;
+  }
+  50% {
+    top: 95%;
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.9;
+  }
+  100% {
+    top: 5%;
+    opacity: 0.1;
+  }
+}
+
+/* Hologram Scanning Ring */
+.hologram-ring {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(34, 211, 238, 0.5);
+  transform: rotateX(72deg) translateZ(-20px);
+  animation: ringSpin 14s linear infinite;
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.2), inset 0 0 20px rgba(16, 185, 129, 0.15);
+}
+
+.hologram-ring-outer {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  transform: rotateX(72deg) translateZ(-35px);
+  animation: ringSpinReverse 20s linear infinite;
+}
+
+@keyframes ringSpin {
+  0% { transform: rotateX(72deg) rotateZ(0deg) translateZ(-20px); }
+  100% { transform: rotateX(72deg) rotateZ(360deg) translateZ(-20px); }
+}
+
+@keyframes ringSpinReverse {
+  0% { transform: rotateX(72deg) rotateZ(360deg) translateZ(-35px); }
+  100% { transform: rotateX(72deg) rotateZ(0deg) translateZ(-35px); }
+}
+
+/* Animated Pulse along circuit paths */
+.pulse-circuit {
+  stroke-dasharray: 8, 8;
+  animation: dashTravel 2s linear infinite;
+}
+
+@keyframes dashTravel {
+  to {
+    stroke-dashoffset: -32;
+  }
+}
+
+/* Soft shadow below 3D box */
+.contact-shadow {
+  position: absolute;
+  width: 170px;
+  height: 60px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.7) 0%, rgba(11, 16, 32, 0) 70%);
+  border-radius: 50%;
+  transform: rotateX(75deg) translateY(140px);
+  filter: blur(10px);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .parcel-body,
+  .laser-scanning-beam,
+  .hologram-ring,
+  .hologram-ring-outer,
+  .pulse-circuit {
+    animation: none !important;
+  }
+}

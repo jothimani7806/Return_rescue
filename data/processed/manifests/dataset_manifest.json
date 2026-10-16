@@ -1,0 +1,632 @@
+{
+  "metadata": {
+    "dataset": "MVTec AD 2 & E-Commerce Defect Benchmark",
+    "seed": 42,
+    "categories": [
+      "clothing-and-apparel",
+      "footwear",
+      "home-appliances",
+      "kitchenware-and-cookware",
+      "smartphones-and-electronics",
+      "tools-and-hardware"
+    ]
+  },
+  "train": [
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\clothing-and-apparel\\train\\good\\clothing-and-apparel_good_train_003.png",
+      "category": "clothing-and-apparel",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\clothing-and-apparel\\train\\good\\clothing-and-apparel_good_train_002.png",
+      "category": "clothing-and-apparel",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\clothing-and-apparel\\train\\good\\clothing-and-apparel_good_train_004.png",
+      "category": "clothing-and-apparel",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\footwear\\train\\good\\footwear_good_train_004.png",
+      "category": "footwear",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\footwear\\train\\good\\footwear_good_train_003.png",
+      "category": "footwear",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\footwear\\train\\good\\footwear_good_train_001.png",
+      "category": "footwear",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\home-appliances\\train\\good\\home-appliances_good_train_002.png",
+      "category": "home-appliances",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\home-appliances\\train\\good\\home-appliances_good_train_004.png",
+      "category": "home-appliances",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\home-appliances\\train\\good\\home-appliances_good_train_003.png",
+      "category": "home-appliances",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\kitchenware-and-cookware\\train\\good\\kitchenware-and-cookware_good_train_002.png",
+      "category": "kitchenware-and-cookware",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\kitchenware-and-cookware\\train\\good\\kitchenware-and-cookware_good_train_003.png",
+      "category": "kitchenware-and-cookware",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\kitchenware-and-cookware\\train\\good\\kitchenware-and-cookware_good_train_001.png",
+      "category": "kitchenware-and-cookware",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\smartphones-and-electronics\\train\\good\\smartphones-and-electronics_good_train_002.png",
+      "category": "smartphones-and-electronics",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\smartphones-and-electronics\\train\\good\\smartphones-and-electronics_good_train_003.png",
+      "category": "smartphones-and-electronics",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\smartphones-and-electronics\\train\\good\\smartphones-and-electronics_good_train_004.png",
+      "category": "smartphones-and-electronics",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\tools-and-hardware\\train\\good\\tools-and-hardware_good_train_002.png",
+      "category": "tools-and-hardware",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\tools-and-hardware\\train\\good\\tools-and-hardware_good_train_004.png",
+      "category": "tools-and-hardware",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\tools-and-hardware\\train\\good\\tools-and-hardware_good_train_003.png",
+      "category": "tools-and-hardware",
+      "label": "good",
+      "is_anomalous": false
+    }
+  ],
+  "validation": [
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\clothing-and-apparel\\train\\good\\clothing-and-apparel_good_train_001.png",
+      "category": "clothing-and-apparel",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\footwear\\train\\good\\footwear_good_train_002.png",
+      "category": "footwear",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\home-appliances\\train\\good\\home-appliances_good_train_001.png",
+      "category": "home-appliances",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\kitchenware-and-cookware\\train\\good\\kitchenware-and-cookware_good_train_004.png",
+      "category": "kitchenware-and-cookware",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\smartphones-and-electronics\\train\\good\\smartphones-and-electronics_good_train_001.png",
+      "category": "smartphones-and-electronics",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\tools-and-hardware\\train\\good\\tools-and-hardware_good_train_001.png",
+      "category": "tools-and-hardware",
+      "label": "good",
+      "is_anomalous": false
+    }
+  ],
+  "test": [
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\clothing-and-apparel\\test\\crack_or_break\\clothing-and-apparel_crack_or_break_001.png",
+      "category": "clothing-and-apparel",
+      "label": "crack_or_break",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\clothing-and-apparel\\test\\crack_or_break\\clothing-and-apparel_crack_or_break_002.png",
+      "category": "clothing-and-apparel",
+      "label": "crack_or_break",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\clothing-and-apparel\\test\\crack_or_break\\clothing-and-apparel_crack_or_break_003.png",
+      "category": "clothing-and-apparel",
+      "label": "crack_or_break",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\clothing-and-apparel\\test\\good\\clothing-and-apparel_good_test_001.png",
+      "category": "clothing-and-apparel",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\clothing-and-apparel\\test\\good\\clothing-and-apparel_good_test_002.png",
+      "category": "clothing-and-apparel",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\clothing-and-apparel\\test\\good\\clothing-and-apparel_good_test_003.png",
+      "category": "clothing-and-apparel",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\clothing-and-apparel\\test\\good\\clothing-and-apparel_good_test_004.png",
+      "category": "clothing-and-apparel",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\clothing-and-apparel\\test\\scratch_or_scuff\\clothing-and-apparel_scratch_or_scuff_001.png",
+      "category": "clothing-and-apparel",
+      "label": "scratch_or_scuff",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\clothing-and-apparel\\test\\scratch_or_scuff\\clothing-and-apparel_scratch_or_scuff_002.png",
+      "category": "clothing-and-apparel",
+      "label": "scratch_or_scuff",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\clothing-and-apparel\\test\\scratch_or_scuff\\clothing-and-apparel_scratch_or_scuff_003.png",
+      "category": "clothing-and-apparel",
+      "label": "scratch_or_scuff",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\clothing-and-apparel\\test\\tear_or_stain\\clothing-and-apparel_tear_or_stain_001.png",
+      "category": "clothing-and-apparel",
+      "label": "tear_or_stain",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\clothing-and-apparel\\test\\tear_or_stain\\clothing-and-apparel_tear_or_stain_002.png",
+      "category": "clothing-and-apparel",
+      "label": "tear_or_stain",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\clothing-and-apparel\\test\\tear_or_stain\\clothing-and-apparel_tear_or_stain_003.png",
+      "category": "clothing-and-apparel",
+      "label": "tear_or_stain",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\footwear\\test\\crack_or_break\\footwear_crack_or_break_001.png",
+      "category": "footwear",
+      "label": "crack_or_break",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\footwear\\test\\crack_or_break\\footwear_crack_or_break_002.png",
+      "category": "footwear",
+      "label": "crack_or_break",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\footwear\\test\\crack_or_break\\footwear_crack_or_break_003.png",
+      "category": "footwear",
+      "label": "crack_or_break",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\footwear\\test\\good\\footwear_good_test_001.png",
+      "category": "footwear",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\footwear\\test\\good\\footwear_good_test_002.png",
+      "category": "footwear",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\footwear\\test\\good\\footwear_good_test_003.png",
+      "category": "footwear",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\footwear\\test\\good\\footwear_good_test_004.png",
+      "category": "footwear",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\footwear\\test\\scratch_or_scuff\\footwear_scratch_or_scuff_001.png",
+      "category": "footwear",
+      "label": "scratch_or_scuff",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\footwear\\test\\scratch_or_scuff\\footwear_scratch_or_scuff_002.png",
+      "category": "footwear",
+      "label": "scratch_or_scuff",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\footwear\\test\\scratch_or_scuff\\footwear_scratch_or_scuff_003.png",
+      "category": "footwear",
+      "label": "scratch_or_scuff",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\footwear\\test\\tear_or_stain\\footwear_tear_or_stain_001.png",
+      "category": "footwear",
+      "label": "tear_or_stain",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\footwear\\test\\tear_or_stain\\footwear_tear_or_stain_002.png",
+      "category": "footwear",
+      "label": "tear_or_stain",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\footwear\\test\\tear_or_stain\\footwear_tear_or_stain_003.png",
+      "category": "footwear",
+      "label": "tear_or_stain",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\home-appliances\\test\\crack_or_break\\home-appliances_crack_or_break_001.png",
+      "category": "home-appliances",
+      "label": "crack_or_break",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\home-appliances\\test\\crack_or_break\\home-appliances_crack_or_break_002.png",
+      "category": "home-appliances",
+      "label": "crack_or_break",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\home-appliances\\test\\crack_or_break\\home-appliances_crack_or_break_003.png",
+      "category": "home-appliances",
+      "label": "crack_or_break",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\home-appliances\\test\\good\\home-appliances_good_test_001.png",
+      "category": "home-appliances",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\home-appliances\\test\\good\\home-appliances_good_test_002.png",
+      "category": "home-appliances",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\home-appliances\\test\\good\\home-appliances_good_test_003.png",
+      "category": "home-appliances",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\home-appliances\\test\\good\\home-appliances_good_test_004.png",
+      "category": "home-appliances",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\home-appliances\\test\\scratch_or_scuff\\home-appliances_scratch_or_scuff_001.png",
+      "category": "home-appliances",
+      "label": "scratch_or_scuff",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\home-appliances\\test\\scratch_or_scuff\\home-appliances_scratch_or_scuff_002.png",
+      "category": "home-appliances",
+      "label": "scratch_or_scuff",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\home-appliances\\test\\scratch_or_scuff\\home-appliances_scratch_or_scuff_003.png",
+      "category": "home-appliances",
+      "label": "scratch_or_scuff",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\home-appliances\\test\\tear_or_stain\\home-appliances_tear_or_stain_001.png",
+      "category": "home-appliances",
+      "label": "tear_or_stain",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\home-appliances\\test\\tear_or_stain\\home-appliances_tear_or_stain_002.png",
+      "category": "home-appliances",
+      "label": "tear_or_stain",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\home-appliances\\test\\tear_or_stain\\home-appliances_tear_or_stain_003.png",
+      "category": "home-appliances",
+      "label": "tear_or_stain",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\kitchenware-and-cookware\\test\\crack_or_break\\kitchenware-and-cookware_crack_or_break_001.png",
+      "category": "kitchenware-and-cookware",
+      "label": "crack_or_break",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\kitchenware-and-cookware\\test\\crack_or_break\\kitchenware-and-cookware_crack_or_break_002.png",
+      "category": "kitchenware-and-cookware",
+      "label": "crack_or_break",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\kitchenware-and-cookware\\test\\crack_or_break\\kitchenware-and-cookware_crack_or_break_003.png",
+      "category": "kitchenware-and-cookware",
+      "label": "crack_or_break",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\kitchenware-and-cookware\\test\\good\\kitchenware-and-cookware_good_test_001.png",
+      "category": "kitchenware-and-cookware",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\kitchenware-and-cookware\\test\\good\\kitchenware-and-cookware_good_test_002.png",
+      "category": "kitchenware-and-cookware",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\kitchenware-and-cookware\\test\\good\\kitchenware-and-cookware_good_test_003.png",
+      "category": "kitchenware-and-cookware",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\kitchenware-and-cookware\\test\\good\\kitchenware-and-cookware_good_test_004.png",
+      "category": "kitchenware-and-cookware",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\kitchenware-and-cookware\\test\\scratch_or_scuff\\kitchenware-and-cookware_scratch_or_scuff_001.png",
+      "category": "kitchenware-and-cookware",
+      "label": "scratch_or_scuff",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\kitchenware-and-cookware\\test\\scratch_or_scuff\\kitchenware-and-cookware_scratch_or_scuff_002.png",
+      "category": "kitchenware-and-cookware",
+      "label": "scratch_or_scuff",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\kitchenware-and-cookware\\test\\scratch_or_scuff\\kitchenware-and-cookware_scratch_or_scuff_003.png",
+      "category": "kitchenware-and-cookware",
+      "label": "scratch_or_scuff",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\kitchenware-and-cookware\\test\\tear_or_stain\\kitchenware-and-cookware_tear_or_stain_001.png",
+      "category": "kitchenware-and-cookware",
+      "label": "tear_or_stain",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\kitchenware-and-cookware\\test\\tear_or_stain\\kitchenware-and-cookware_tear_or_stain_002.png",
+      "category": "kitchenware-and-cookware",
+      "label": "tear_or_stain",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\kitchenware-and-cookware\\test\\tear_or_stain\\kitchenware-and-cookware_tear_or_stain_003.png",
+      "category": "kitchenware-and-cookware",
+      "label": "tear_or_stain",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\smartphones-and-electronics\\test\\crack_or_break\\smartphones-and-electronics_crack_or_break_001.png",
+      "category": "smartphones-and-electronics",
+      "label": "crack_or_break",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\smartphones-and-electronics\\test\\crack_or_break\\smartphones-and-electronics_crack_or_break_002.png",
+      "category": "smartphones-and-electronics",
+      "label": "crack_or_break",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\smartphones-and-electronics\\test\\crack_or_break\\smartphones-and-electronics_crack_or_break_003.png",
+      "category": "smartphones-and-electronics",
+      "label": "crack_or_break",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\smartphones-and-electronics\\test\\good\\smartphones-and-electronics_good_test_001.png",
+      "category": "smartphones-and-electronics",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\smartphones-and-electronics\\test\\good\\smartphones-and-electronics_good_test_002.png",
+      "category": "smartphones-and-electronics",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\smartphones-and-electronics\\test\\good\\smartphones-and-electronics_good_test_003.png",
+      "category": "smartphones-and-electronics",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\smartphones-and-electronics\\test\\good\\smartphones-and-electronics_good_test_004.png",
+      "category": "smartphones-and-electronics",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\smartphones-and-electronics\\test\\scratch_or_scuff\\smartphones-and-electronics_scratch_or_scuff_001.png",
+      "category": "smartphones-and-electronics",
+      "label": "scratch_or_scuff",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\smartphones-and-electronics\\test\\scratch_or_scuff\\smartphones-and-electronics_scratch_or_scuff_002.png",
+      "category": "smartphones-and-electronics",
+      "label": "scratch_or_scuff",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\smartphones-and-electronics\\test\\scratch_or_scuff\\smartphones-and-electronics_scratch_or_scuff_003.png",
+      "category": "smartphones-and-electronics",
+      "label": "scratch_or_scuff",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\smartphones-and-electronics\\test\\tear_or_stain\\smartphones-and-electronics_tear_or_stain_001.png",
+      "category": "smartphones-and-electronics",
+      "label": "tear_or_stain",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\smartphones-and-electronics\\test\\tear_or_stain\\smartphones-and-electronics_tear_or_stain_002.png",
+      "category": "smartphones-and-electronics",
+      "label": "tear_or_stain",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\smartphones-and-electronics\\test\\tear_or_stain\\smartphones-and-electronics_tear_or_stain_003.png",
+      "category": "smartphones-and-electronics",
+      "label": "tear_or_stain",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\tools-and-hardware\\test\\crack_or_break\\tools-and-hardware_crack_or_break_001.png",
+      "category": "tools-and-hardware",
+      "label": "crack_or_break",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\tools-and-hardware\\test\\crack_or_break\\tools-and-hardware_crack_or_break_002.png",
+      "category": "tools-and-hardware",
+      "label": "crack_or_break",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\tools-and-hardware\\test\\crack_or_break\\tools-and-hardware_crack_or_break_003.png",
+      "category": "tools-and-hardware",
+      "label": "crack_or_break",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\tools-and-hardware\\test\\good\\tools-and-hardware_good_test_001.png",
+      "category": "tools-and-hardware",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\tools-and-hardware\\test\\good\\tools-and-hardware_good_test_002.png",
+      "category": "tools-and-hardware",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\tools-and-hardware\\test\\good\\tools-and-hardware_good_test_003.png",
+      "category": "tools-and-hardware",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\tools-and-hardware\\test\\good\\tools-and-hardware_good_test_004.png",
+      "category": "tools-and-hardware",
+      "label": "good",
+      "is_anomalous": false
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\tools-and-hardware\\test\\scratch_or_scuff\\tools-and-hardware_scratch_or_scuff_001.png",
+      "category": "tools-and-hardware",
+      "label": "scratch_or_scuff",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\tools-and-hardware\\test\\scratch_or_scuff\\tools-and-hardware_scratch_or_scuff_002.png",
+      "category": "tools-and-hardware",
+      "label": "scratch_or_scuff",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\tools-and-hardware\\test\\scratch_or_scuff\\tools-and-hardware_scratch_or_scuff_003.png",
+      "category": "tools-and-hardware",
+      "label": "scratch_or_scuff",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\tools-and-hardware\\test\\tear_or_stain\\tools-and-hardware_tear_or_stain_001.png",
+      "category": "tools-and-hardware",
+      "label": "tear_or_stain",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\tools-and-hardware\\test\\tear_or_stain\\tools-and-hardware_tear_or_stain_002.png",
+      "category": "tools-and-hardware",
+      "label": "tear_or_stain",
+      "is_anomalous": true
+    },
+    {
+      "image_path": "D:\\Return rescue\\data\\processed\\images\\tools-and-hardware\\test\\tear_or_stain\\tools-and-hardware_tear_or_stain_003.png",
+      "category": "tools-and-hardware",
+      "label": "tear_or_stain",
+      "is_anomalous": true
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "model": "Anomalib-PatchCore-MemoryBank",
+  "threshold": 0.5,
+  "normal_mean": [
+    0.32797062397003174,
+    0.423683762550354,
+    0.4435037076473236
+  ],
+  "normal_std": [
+    0.05577045679092407,
+    0.07424037158489227,
+    0.0558018684387207
+  ],
+  "metrics": {
+    "accuracy": 0.3077,
+    "auroc": 0.6667,
+    "f1_score": 0.0,
+    "precision": 0.0,
+    "recall": 0.0,
+    "duration_seconds": 0.14
+  }
+}
