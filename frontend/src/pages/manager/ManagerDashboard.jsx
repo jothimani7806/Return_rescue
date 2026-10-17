@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
+import recordStorage from '../../services/recordStorage';
 import PageHeader from '../../components/common/PageHeader';
 import MetricCard from '../../components/common/MetricCard';
 import StatusBadge from '../../components/common/StatusBadge';
@@ -21,7 +22,8 @@ import {
   HelpCircle,
   Package,
   Layers,
-  Sparkles
+  Sparkles,
+  RefreshCw
 } from 'lucide-react';
 import {
   BarChart,
@@ -40,18 +42,22 @@ export default function ManagerDashboard() {
   const { user } = useAuth();
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchMetrics = async (isManual = false) => {
+    if (isManual) setRefreshing(true);
+    try {
+      const res = await api.getDashboardMetrics();
+      setMetrics(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchMetrics = async () => {
-      try {
-        const res = await api.getDashboardMetrics();
-        setMetrics(res.data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchMetrics();
   }, []);
 
@@ -91,7 +97,16 @@ export default function ManagerDashboard() {
           </p>
         </div>
 
-        <div className="relative z-10 flex gap-3 flex-wrap">
+        <div className="relative z-10 flex gap-3 flex-wrap items-center">
+          <button
+            onClick={() => fetchMetrics(true)}
+            disabled={refreshing}
+            className="px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all disabled:opacity-50"
+            title="Refresh dashboard metrics"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-indigo-400' : ''}`} />
+            <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
+          </button>
           <Link
             to="/manager/returns?status=AWAITING_MANAGER_APPROVAL"
             className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold shadow-glow-brand flex items-center gap-2 transition-all"
@@ -369,27 +384,50 @@ export default function ManagerDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
-              {metrics.recent_activity?.map((r) => (
-                <tr key={r.id} className="hover:bg-slate-900/40 transition-colors">
-                  <td className="py-3 px-3 font-mono font-bold text-indigo-400">{r.return_id}</td>
-                  <td className="py-3 px-3 font-semibold text-white max-w-xs truncate">{r.product_name}</td>
-                  <td className="py-3 px-3 text-slate-400">{r.category}</td>
-                  <td className="py-3 px-3">
-                    <StatusBadge status={r.status} />
-                  </td>
-                  <td className="py-3 px-3">
-                    {r.outcome ? <StatusBadge status={r.outcome} /> : <span className="text-slate-600">Pending</span>}
-                  </td>
-                  <td className="py-3 px-3 text-right">
-                    <Link
-                      to={`/manager/inspect/${r.id}`}
-                      className="px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 text-xs font-semibold inline-flex items-center gap-1 transition-colors"
-                    >
-                      Inspect
-                    </Link>
-                  </td>
-                </tr>
-              ))}
+              {(() => {
+                // Merge server recent activity with local records to ensure all past returns are visible
+                const localRecords = recordStorage.getAllRecords();
+                const list = [...(metrics.recent_activity || [])];
+                const seenIds = new Set(list.map((r) => r.return_id || String(r.id)));
+                
+                localRecords.forEach((lr) => {
+                  const key = lr.return_id || String(lr.id);
+                  if (!seenIds.has(key)) {
+                    seenIds.add(key);
+                    list.push({
+                      id: lr.id || lr.return_id,
+                      return_id: lr.return_id,
+                      product_name: lr.product_name,
+                      category: lr.category_name || 'General Product',
+                      status: lr.status,
+                      outcome: lr.final_recovery_outcome,
+                      created_at: lr.created_at
+                    });
+                  }
+                });
+
+                return list.map((r) => (
+                  <tr key={r.id || r.return_id} className="hover:bg-slate-900/40 transition-colors">
+                    <td className="py-3 px-3 font-mono font-bold text-indigo-400">{r.return_id}</td>
+                    <td className="py-3 px-3 font-semibold text-white max-w-xs truncate">{r.product_name}</td>
+                    <td className="py-3 px-3 text-slate-400">{r.category}</td>
+                    <td className="py-3 px-3">
+                      <StatusBadge status={r.status} />
+                    </td>
+                    <td className="py-3 px-3">
+                      {r.outcome ? <StatusBadge status={r.outcome} /> : <span className="text-slate-600">Pending</span>}
+                    </td>
+                    <td className="py-3 px-3 text-right">
+                      <Link
+                        to={`/manager/inspect/${r.id || r.return_id}`}
+                        className="px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 text-xs font-semibold inline-flex items-center gap-1 transition-colors"
+                      >
+                        Inspect
+                      </Link>
+                    </td>
+                  </tr>
+                ));
+              })()}
             </tbody>
           </table>
         </div>

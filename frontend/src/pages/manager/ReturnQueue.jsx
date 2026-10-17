@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import api from '../../services/api';
+import recordStorage from '../../services/recordStorage';
 import PageHeader from '../../components/common/PageHeader';
 import StatusBadge from '../../components/common/StatusBadge';
 import {
@@ -20,14 +21,17 @@ import {
 
 export default function ReturnQueue() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialStatus = searchParams.get('status') || '';
+  const urlStatus = searchParams.get('status') || '';
 
-  const [returns, setReturns] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [statusFilter, setStatusFilter] = useState(initialStatus);
+  const [statusFilter, setStatusFilter] = useState(urlStatus);
   const [categoryFilter, setCategoryFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
+
+  // Initialize immediately from persistent storage so past records never flicker or disappear
+  const [returns, setReturns] = useState(() => recordStorage.getAllRecords());
+  const [loading, setLoading] = useState(() => recordStorage.getAllRecords().length === 0);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Record deletion state
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -35,8 +39,35 @@ export default function ReturnQueue() {
   const [deleteNotification, setDeleteNotification] = useState('');
   const [deleteError, setDeleteError] = useState('');
 
-  const fetchReturns = async () => {
-    setLoading(true);
+  // Keep statusFilter in sync if URL query parameter changes
+  useEffect(() => {
+    setStatusFilter(searchParams.get('status') || '');
+  }, [searchParams]);
+
+  const applyLocalFilters = useCallback((recordsList) => {
+    let list = recordsList;
+    if (statusFilter) {
+      list = list.filter((r) => r.status === statusFilter || r.final_recovery_outcome === statusFilter);
+    }
+    if (categoryFilter) {
+      list = list.filter((r) => r.category_slug === categoryFilter || (r.category && r.category.slug === categoryFilter) || (r.category_name && r.category_name.toLowerCase().includes(categoryFilter.toLowerCase())));
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      list = list.filter((r) =>
+        (r.return_id && r.return_id.toLowerCase().includes(q)) ||
+        (r.product_name && r.product_name.toLowerCase().includes(q)) ||
+        (r.sku && r.sku.toLowerCase().includes(q)) ||
+        (r.customer_username && r.customer_username.toLowerCase().includes(q))
+      );
+    }
+    return list;
+  }, [statusFilter, categoryFilter, searchQuery]);
+
+  const fetchReturns = useCallback(async (isManualRefresh = false) => {
+    if (isManualRefresh) setRefreshing(true);
+    else setLoading(true);
+
     try {
       const params = {};
       if (statusFilter) params.status = statusFilter;
@@ -44,13 +75,28 @@ export default function ReturnQueue() {
       if (searchQuery.trim()) params.search = searchQuery.trim();
 
       const res = await api.getReturns(params);
-      setReturns(res.data.results || res.data || []);
+      const rawData = res.data.results || res.data || [];
+      // Merge authoritative server records with persistent local records
+      const allMerged = recordStorage.mergeServerRecords(rawData, null, true);
+      setReturns(applyLocalFilters(allMerged));
     } catch (err) {
-      console.error(err);
+      console.warn('Backend getReturns failed; displaying persistent records from storage:', err);
+      const allLocal = recordStorage.getAllRecords();
+      setReturns(applyLocalFilters(allLocal));
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [statusFilter, categoryFilter, searchQuery, applyLocalFilters]);
+
+  // Subscribe to persistent storage updates
+  useEffect(() => {
+    const unsubscribe = recordStorage.subscribe(() => {
+      const allLocal = recordStorage.getAllRecords();
+      setReturns(applyLocalFilters(allLocal));
+    });
+    return unsubscribe;
+  }, [applyLocalFilters]);
 
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
@@ -58,6 +104,7 @@ export default function ReturnQueue() {
     setDeleteError('');
     try {
       await api.deleteReturn(deleteTarget.id);
+      recordStorage.deleteRecord(deleteTarget.id);
       setReturns((prev) => prev.filter((r) => r.id !== deleteTarget.id));
       setDeleteNotification(`Return record ${deleteTarget.return_id} has been permanently deleted from the queue.`);
       setDeleteTarget(null);
@@ -83,12 +130,16 @@ export default function ReturnQueue() {
 
   useEffect(() => {
     fetchReturns();
-  }, [statusFilter, categoryFilter]);
+  }, [fetchReturns]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     fetchReturns();
   };
+
+  const allRecordsCount = recordStorage.getAllRecords().length;
+  const pendingCount = recordStorage.getAllRecords().filter((r) => r.status === 'AWAITING_MANAGER_APPROVAL' || r.status === 'AWAITING_INSPECTION').length;
+  const approvedCount = recordStorage.getAllRecords().filter((r) => Boolean(r.final_recovery_outcome)).length;
 
   return (
     <div className="space-y-6">
@@ -97,10 +148,12 @@ export default function ReturnQueue() {
         description="Live operational return pipeline across all product categories. Review AI visual inspection, approve recovery outcomes, or delete invalid records."
       >
         <button
-          onClick={fetchReturns}
-          className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white flex items-center gap-1.5 text-xs font-semibold"
+          onClick={() => fetchReturns(true)}
+          disabled={refreshing}
+          className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white flex items-center gap-1.5 text-xs font-semibold disabled:opacity-50 transition-all"
         >
-          <RefreshCw className="w-3.5 h-3.5" /> Refresh
+          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-indigo-400' : ''}`} />
+          <span>{refreshing ? 'Refreshing...' : 'Refresh Queue'}</span>
         </button>
       </PageHeader>
 
@@ -120,6 +173,95 @@ export default function ReturnQueue() {
         </div>
       )}
 
+      {/* Quick Filter Status Pills */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter('');
+            setSearchParams({});
+          }}
+          className={`px-3.5 py-1.5 rounded-xl font-medium transition-all whitespace-nowrap ${
+            statusFilter === ''
+              ? 'bg-indigo-600 text-white font-bold shadow-glow-brand'
+              : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+          }`}
+        >
+          All Records ({allRecordsCount})
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter('AWAITING_MANAGER_APPROVAL');
+            setSearchParams({ status: 'AWAITING_MANAGER_APPROVAL' });
+          }}
+          className={`px-3.5 py-1.5 rounded-xl font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            statusFilter === 'AWAITING_MANAGER_APPROVAL'
+              ? 'bg-amber-500 text-slate-950 font-bold'
+              : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+          }`}
+        >
+          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+          Pending Review ({pendingCount})
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter('RESTOCKED');
+            setSearchParams({ status: 'RESTOCKED' });
+          }}
+          className={`px-3.5 py-1.5 rounded-xl font-medium transition-all whitespace-nowrap ${
+            statusFilter === 'RESTOCKED'
+              ? 'bg-emerald-600 text-white font-bold'
+              : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+          }`}
+        >
+          Restocked
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter('LISTED_FOR_RESALE');
+            setSearchParams({ status: 'LISTED_FOR_RESALE' });
+          }}
+          className={`px-3.5 py-1.5 rounded-xl font-medium transition-all whitespace-nowrap ${
+            statusFilter === 'LISTED_FOR_RESALE'
+              ? 'bg-blue-600 text-white font-bold'
+              : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+          }`}
+        >
+          Resale Outlet
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter('IN_REPAIR');
+            setSearchParams({ status: 'IN_REPAIR' });
+          }}
+          className={`px-3.5 py-1.5 rounded-xl font-medium transition-all whitespace-nowrap ${
+            statusFilter === 'IN_REPAIR'
+              ? 'bg-orange-600 text-white font-bold'
+              : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+          }`}
+        >
+          In Repair
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter('REJECTED');
+            setSearchParams({ status: 'REJECTED' });
+          }}
+          className={`px-3.5 py-1.5 rounded-xl font-medium transition-all whitespace-nowrap ${
+            statusFilter === 'REJECTED'
+              ? 'bg-rose-600 text-white font-bold'
+              : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+          }`}
+        >
+          Rejected
+        </button>
+      </div>
+
       {/* Filter and Search Bar */}
       <div className="glass-panel border border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
         <form onSubmit={handleSearchSubmit} className="relative flex-1">
@@ -137,10 +279,13 @@ export default function ReturnQueue() {
           {/* Status Filter */}
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setSearchParams(e.target.value ? { status: e.target.value } : {});
+            }}
             className="px-3 py-2.5 rounded-xl bg-slate-900/60 border border-slate-800 text-white text-xs focus:outline-none focus:border-indigo-500"
           >
-            <option value="">All Statuses</option>
+            <option value="">All Statuses ({allRecordsCount})</option>
             <option value="AWAITING_INSPECTION">Pending AI Analysis</option>
             <option value="AWAITING_MANAGER_APPROVAL">Pending Manager Review</option>
             <option value="DECISION_APPROVED">Approved</option>
@@ -186,9 +331,10 @@ export default function ReturnQueue() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
-              {loading ? (
+              {loading && returns.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-16 text-center text-slate-500 text-sm">
+                    <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-indigo-400" />
                     Loading return queue records...
                   </td>
                 </tr>
@@ -200,7 +346,7 @@ export default function ReturnQueue() {
                 </tr>
               ) : (
                 returns.map((ret) => (
-                  <tr key={ret.id} className="hover:bg-slate-900/40 transition-colors group">
+                  <tr key={ret.id || ret.return_id} className="hover:bg-slate-900/40 transition-colors group">
                     {/* Item Thumbnail & Return ID */}
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
@@ -226,14 +372,14 @@ export default function ReturnQueue() {
 
                     {/* Category & SKU */}
                     <td className="py-3.5 px-4">
-                      <span className="text-slate-300 font-medium block">{ret.category_name}</span>
+                      <span className="text-slate-300 font-medium block">{ret.category_name || 'General Product'}</span>
                       <span className="text-slate-500 font-mono text-[11px] block">{ret.sku || 'No SKU'}</span>
                     </td>
 
                     {/* Customer */}
                     <td className="py-3.5 px-4">
-                      <span className="text-white font-medium block">{ret.customer_username}</span>
-                      <span className="text-slate-500 text-[11px]">{new Date(ret.created_at).toLocaleDateString()}</span>
+                      <span className="text-white font-medium block">{ret.customer_username || 'Customer'}</span>
+                      <span className="text-slate-500 text-[11px]">{new Date(ret.created_at || Date.now()).toLocaleDateString()}</span>
                     </td>
 
                     {/* AI Visual Condition */}
@@ -274,7 +420,7 @@ export default function ReturnQueue() {
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Link
-                          to={`/manager/inspect/${ret.id}`}
+                          to={`/manager/inspect/${ret.id || ret.return_id}`}
                           className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs inline-flex items-center gap-1 shadow-glow-brand transition-all"
                         >
                           Inspect <ArrowRight className="w-3.5 h-3.5" />

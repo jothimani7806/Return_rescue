@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import recordStorage from '../../services/recordStorage';
 import PageHeader from '../../components/common/PageHeader';
 import StatusBadge from '../../components/common/StatusBadge';
 import ImageGallery from '../../components/common/ImageGallery';
@@ -55,6 +56,7 @@ export default function ReturnInspection() {
     setError('');
     try {
       await api.deleteReturn(id);
+      recordStorage.deleteRecord(id);
       navigate('/manager/returns');
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to delete return record.');
@@ -76,6 +78,9 @@ export default function ReturnInspection() {
       const res = await api.getReturn(id);
       const data = res.data;
       setReturnReq(data);
+      if (data) {
+        recordStorage.saveRecord(data);
+      }
 
       if (data.decision) {
         if (data.decision.is_override) {
@@ -180,6 +185,9 @@ export default function ReturnInspection() {
       });
 
       setReturnReq(res.data);
+      if (res.data) {
+        recordStorage.updateRecord(id, res.data);
+      }
       setShowConfirmModal(false);
       setSuccessMsg(`Decision successfully executed: Recorded as ${finalActionValue}.`);
     } catch (err) {

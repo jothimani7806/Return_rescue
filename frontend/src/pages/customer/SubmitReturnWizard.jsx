@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
+import recordStorage from '../../services/recordStorage';
 import PageHeader from '../../components/common/PageHeader';
 import {
   Package,
@@ -19,6 +21,7 @@ import {
 } from 'lucide-react';
 
 export default function SubmitReturnWizard() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [categories, setCategories] = useState([]);
@@ -150,6 +153,9 @@ export default function SubmitReturnWizard() {
       });
 
       const res = await api.createReturn(payload);
+      if (res.data) {
+        recordStorage.saveRecord(res.data, user);
+      }
       navigate(`/customer/return/${res.data.id}`);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to submit return request. Please check fields.');

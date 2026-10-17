@@ -276,6 +276,7 @@ class InspectionRuleViewSet(viewsets.ModelViewSet):
 class ReturnRequestViewSet(viewsets.ModelViewSet):
     serializer_class = ReturnRequestSerializer
     parser_classes = [MultiPartParser, FormParser, JSONParser]
+    pagination_class = None
 
     def get_permissions(self):
         if self.action in ['list', 'retrieve', 'create', 'upload_image']:
@@ -815,7 +816,7 @@ def dashboard_metrics(request):
             'status': r.status,
             'outcome': r.final_recovery_outcome,
             'created_at': r.created_at
-        } for r in returns_qs.order_by('-created_at')[:8]
+        } for r in returns_qs.order_by('-created_at')[:30]
     ]
 
     return Response({

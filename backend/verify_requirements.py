@@ -192,7 +192,8 @@ def run_tests():
 
     # Customer 1 lists returns - should NOT see other_customer's return
     res_cust_returns = client.get('/api/returns/')
-    cust_returns_list = res_cust_returns.json().get('results', res_cust_returns.json())
+    data_cust = res_cust_returns.json()
+    cust_returns_list = data_cust.get('results', data_cust) if isinstance(data_cust, dict) else data_cust
     found_other = any(r['return_id'] == 'RET-TEST-ISOLATION' for r in cust_returns_list)
     assert_test(
         "Data Isolation: Customer cannot see returns submitted by other customers in queue",
@@ -227,7 +228,8 @@ def run_tests():
 
     # Manager can see other customer's return in queue
     res_mgr_returns = client.get('/api/returns/')
-    mgr_returns_list = res_mgr_returns.json().get('results', res_mgr_returns.json())
+    data_mgr = res_mgr_returns.json()
+    mgr_returns_list = data_mgr.get('results', data_mgr) if isinstance(data_mgr, dict) else data_mgr
     assert_test(
         "Manager Inspection Queue: Manager sees all returns across customers",
         len(mgr_returns_list) >= 1 and any(r['return_id'] == 'RET-TEST-ISOLATION' for r in mgr_returns_list),

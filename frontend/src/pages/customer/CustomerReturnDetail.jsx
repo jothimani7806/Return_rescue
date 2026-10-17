@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../services/api';
+import recordStorage from '../../services/recordStorage';
+import { useAuth } from '../../context/AuthContext';
 import PageHeader from '../../components/common/PageHeader';
 import StatusBadge from '../../components/common/StatusBadge';
 import ImageGallery from '../../components/common/ImageGallery';
@@ -13,34 +15,67 @@ import {
   Layers,
   HelpCircle,
   ShieldCheck,
-  FileText
+  FileText,
+  AlertCircle
 } from 'lucide-react';
 
 export default function CustomerReturnDetail() {
   const { id } = useParams();
-  const [returnReq, setReturnReq] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+
+  // Find in persistent storage immediately to avoid any blank loading screen
+  const initialLocal = () => {
+    const all = recordStorage.getAllRecords();
+    return all.find((r) => r.id === id || r.return_id === id || String(r.id) === String(id)) || null;
+  };
+
+  const [returnReq, setReturnReq] = useState(initialLocal);
+  const [loading, setLoading] = useState(() => !initialLocal());
   const [error, setError] = useState('');
 
   useEffect(() => {
+    let isMounted = true;
     const fetchReturn = async () => {
       try {
         const res = await api.getReturn(id);
-        setReturnReq(res.data);
+        if (isMounted && res.data) {
+          setReturnReq(res.data);
+          recordStorage.saveRecord(res.data, user);
+        }
       } catch (err) {
-        setError('Unable to load return details. You may not have permission to view this record.');
+        console.warn('API getReturn failed; checking persistent local storage:', err);
+        const local = initialLocal();
+        if (local) {
+          if (isMounted) setReturnReq(local);
+        } else if (isMounted) {
+          setError('Unable to load return details. You may not have permission to view this record.');
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
-    fetchReturn();
-  }, [id]);
 
-  if (loading) {
+    fetchReturn();
+
+    // Subscribe to record storage updates (e.g. manager approval)
+    const unsubscribe = recordStorage.subscribe(() => {
+      const updated = initialLocal();
+      if (updated && isMounted) {
+        setReturnReq(updated);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, [id, user]);
+
+  if (loading && !returnReq) {
     return <div className="py-20 text-center text-slate-500 text-sm">Loading return request...</div>;
   }
 
-  if (error || !returnReq) {
+  if (error && !returnReq) {
     return (
       <div className="max-w-xl mx-auto py-16 text-center space-y-4">
         <p className="text-sm text-rose-400">{error || 'Return request not found.'}</p>
@@ -54,7 +89,7 @@ export default function CustomerReturnDetail() {
   const steps = [
     { title: 'Return Submitted', done: true, date: returnReq.created_at },
     { title: 'AI Visual Inspection', done: Boolean(returnReq.ai_inspection), date: returnReq.ai_inspection?.inspected_at },
-    { title: 'Review & Recovery Decision', done: Boolean(returnReq.final_recovery_outcome), date: returnReq.decision?.decided_at },
+    { title: 'Review & Recovery Decision', done: Boolean(returnReq.final_recovery_outcome || returnReq.decision), date: returnReq.decision?.decided_at },
   ];
 
   return (
@@ -69,7 +104,7 @@ export default function CustomerReturnDetail() {
         </Link>
         <PageHeader
           title={`Return Request: ${returnReq.return_id}`}
-          description={`Product: ${returnReq.product_name} • Category: ${returnReq.category_name}`}
+          description={`Product: ${returnReq.product_name} • Category: ${returnReq.category_name || 'General Product'}`}
         >
           {returnReq.final_recovery_outcome ? (
             <StatusBadge status={returnReq.final_recovery_outcome} />
@@ -99,7 +134,7 @@ export default function CustomerReturnDetail() {
                 {st.title}
               </div>
               <p className="mt-1 text-xs text-slate-400">
-                {st.done && st.date ? new Date(st.date).toLocaleDateString() : 'Pending'}
+                {st.done && st.date ? new Date(st.date).toLocaleDateString() : 'Pending verification'}
               </p>
             </div>
           ))}
@@ -125,11 +160,11 @@ export default function CustomerReturnDetail() {
                 : `Your return has been approved and assigned to ${returnReq.final_recovery_outcome || 'recovery processing'}.`}
             </span>
           </div>
-          {(returnReq.decision?.override_reason || returnReq.decision?.approval_reason) && (
+          {(returnReq.decision?.override_reason || returnReq.decision?.approval_reason || returnReq.decision?.manager_notes) && (
             <div className="p-3 rounded-2xl bg-slate-900/60 border border-slate-800 text-xs">
               <span className="text-slate-400 font-semibold block mb-0.5">Manager Explanation:</span>
               <p className="text-slate-200 italic">
-                "{returnReq.decision.override_reason || returnReq.decision.approval_reason}"
+                "{returnReq.decision.override_reason || returnReq.decision.approval_reason || returnReq.decision.manager_notes}"
               </p>
             </div>
           )}
@@ -143,7 +178,7 @@ export default function CustomerReturnDetail() {
           <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
             Uploaded Inspection Photos ({returnReq.images?.length || 0})
           </h4>
-          <ImageGallery images={returnReq.images} productName={returnReq.product_name} />
+          <ImageGallery images={returnReq.images || []} productName={returnReq.product_name} />
         </div>
 
         {/* Right Column: Submitted Details */}
@@ -157,7 +192,7 @@ export default function CustomerReturnDetail() {
             <div className="grid grid-cols-2 gap-4 border-b border-slate-800/80 pb-4">
               <div>
                 <span className="text-slate-500 block mb-1">Return Reason:</span>
-                <span className="font-semibold text-white">{returnReq.return_reason_display}</span>
+                <span className="font-semibold text-white">{returnReq.return_reason_display || returnReq.return_reason}</span>
               </div>
               <div>
                 <span className="text-slate-500 block mb-1">Packaging Condition:</span>
@@ -171,21 +206,25 @@ export default function CustomerReturnDetail() {
               </div>
               <div>
                 <span className="text-slate-500 block mb-1">Submission Date:</span>
-                <span className="text-slate-300">{new Date(returnReq.created_at).toLocaleDateString()}</span>
+                <span className="text-slate-300">{new Date(returnReq.created_at || Date.now()).toLocaleDateString()}</span>
               </div>
             </div>
 
             <div>
               <span className="text-slate-500 block mb-1">Your Issue Description:</span>
               <p className="text-slate-300 italic bg-slate-900/60 p-3 rounded-xl border border-slate-800">
-                "{returnReq.customer_description}"
+                "{returnReq.customer_description || 'No description provided.'}"
               </p>
             </div>
 
             {returnReq.missing_accessories && returnReq.missing_accessories.length > 0 && (
               <div>
                 <span className="text-slate-500 block mb-1">Missing Accessories Reported:</span>
-                <span className="text-amber-400">{returnReq.missing_accessories.join(', ')}</span>
+                <span className="text-amber-400">
+                  {Array.isArray(returnReq.missing_accessories)
+                    ? returnReq.missing_accessories.join(', ')
+                    : String(returnReq.missing_accessories)}
+                </span>
               </div>
             )}
           </div>

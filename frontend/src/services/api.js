@@ -27,11 +27,19 @@ apiClient.interceptors.request.use((config) => {
     const pathname = window.location.pathname;
 
     if (pathname.startsWith('/manager')) {
-      token = sessionStorage.getItem('return_rescue_manager_token') || sessionStorage.getItem('return_rescue_token');
+      token =
+        sessionStorage.getItem('return_rescue_manager_token') ||
+        sessionStorage.getItem('return_rescue_token') ||
+        localStorage.getItem('return_rescue_manager_token') ||
+        localStorage.getItem('return_rescue_token');
     } else if (pathname.startsWith('/customer')) {
-      token = sessionStorage.getItem('return_rescue_customer_token') || sessionStorage.getItem('return_rescue_token');
+      token =
+        sessionStorage.getItem('return_rescue_customer_token') ||
+        sessionStorage.getItem('return_rescue_token') ||
+        localStorage.getItem('return_rescue_customer_token') ||
+        localStorage.getItem('return_rescue_token');
     } else {
-      token = sessionStorage.getItem('return_rescue_token');
+      token = sessionStorage.getItem('return_rescue_token') || localStorage.getItem('return_rescue_token');
     }
 
     if (token) {
