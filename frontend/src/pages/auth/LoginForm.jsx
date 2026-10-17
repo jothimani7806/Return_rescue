@@ -15,7 +15,8 @@ import {
   RotateCcw,
   Package,
   CheckCircle2,
-  Loader2
+  Loader2,
+  X
 } from 'lucide-react';
 
 export default function LoginForm({ initialPortal = 'customer' }) {
@@ -86,14 +87,22 @@ export default function LoginForm({ initialPortal = 'customer' }) {
       }
     } catch (err) {
       console.warn('Sign-in error:', err);
-      if (err.response?.data?.error) {
-        setError(err.response.data.error);
+      const serverMsg =
+        err.response?.data?.error ||
+        err.response?.data?.detail ||
+        (Array.isArray(err.response?.data?.non_field_errors) ? err.response.data.non_field_errors[0] : null) ||
+        err.response?.data?.message;
+
+      if (serverMsg) {
+        setError(serverMsg);
       } else if (err.code === 'ECONNABORTED' || err.message?.toLowerCase().includes('timeout')) {
         setError('Server response timed out. The backend is waking up from idle (~30s on free tier). Please click Sign In again.');
-      } else if (!err.response || err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
+      } else if (!err.response && (err.message === 'Network Error' || err.code === 'ERR_NETWORK')) {
         setError('Unable to reach server. The cloud backend is spinning up from idle (~30s). Please wait a few seconds and try again.');
+      } else if (err.message) {
+        setError(`Sign-in notice: ${err.message}`);
       } else {
-        setError('Authentication failed. Please verify your username/email and password.');
+        setError('Authentication failed. Please verify your credentials.');
       }
     } finally {
       setLoading(false);
@@ -175,10 +184,20 @@ export default function LoginForm({ initialPortal = 'customer' }) {
           {error && (
             <div
               role="alert"
-              className="mt-5 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2.5 animate-fadeIn"
+              className="mt-5 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start justify-between gap-2.5 animate-fadeIn"
             >
-              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-rose-400" />
-              <div className="leading-relaxed">{error}</div>
+              <div className="flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-rose-400" />
+                <div className="leading-relaxed">{error}</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setError('')}
+                className="text-rose-400 hover:text-rose-200 transition-colors p-0.5 rounded focus:outline-none"
+                aria-label="Dismiss error"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
           )}
 
@@ -202,7 +221,10 @@ export default function LoginForm({ initialPortal = 'customer' }) {
                   required
                   autoComplete="username"
                   value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
+                  onChange={(e) => {
+                    setIdentifier(e.target.value);
+                    if (error) setError('');
+                  }}
                   placeholder={portal === 'manager' ? 'manager' : 'customer'}
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700/80 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 transition-all shadow-inner"
                 />
@@ -227,7 +249,10 @@ export default function LoginForm({ initialPortal = 'customer' }) {
                   required
                   autoComplete="current-password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (error) setError('');
+                  }}
                   placeholder="••••••••••••"
                   className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700/80 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 transition-all shadow-inner"
                 />

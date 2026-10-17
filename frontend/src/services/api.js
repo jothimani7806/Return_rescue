@@ -1,10 +1,17 @@
 import axios from 'axios';
 
+const RENDER_DIRECT_URL = 'https://return-rescue.onrender.com';
 let envBase = import.meta.env.VITE_API_BASE;
 let ROOT_BASE = '';
-if (envBase) {
+
+if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+  // Use Vercel's same-origin edge proxy to eliminate all browser CORS and adblocker issues
+  ROOT_BASE = '';
+} else if (envBase) {
   const clean = envBase.replace(/\/+$/, '');
   ROOT_BASE = clean.endsWith('/api') ? clean.slice(0, -4) : clean;
+} else {
+  ROOT_BASE = RENDER_DIRECT_URL;
 }
 
 const apiClient = axios.create({
@@ -68,6 +75,35 @@ apiClient.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Automatic dual-channel fallback: If Vercel proxy gives 502/network error during cold-start,
+// seamlessly retry directly against Render cloud backend, and vice-versa!
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const config = error.config;
+    if (!config || config._retried) {
+      return Promise.reject(error);
+    }
+    const isNetworkOrServerDown =
+      !error.response ||
+      error.code === 'ERR_NETWORK' ||
+      error.code === 'ECONNABORTED' ||
+      [502, 503, 504].includes(error.response?.status);
+
+    if (isNetworkOrServerDown) {
+      config._retried = true;
+      // Switch destination
+      if (!config.baseURL || !config.baseURL.startsWith('http')) {
+        config.baseURL = RENDER_DIRECT_URL;
+      } else {
+        config.baseURL = undefined; // Try relative proxy
+      }
+      return apiClient(config);
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const api = {
   // Auth
