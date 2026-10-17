@@ -1,0 +1,241 @@
+/* ============================================================
+   RETURN RESCUE - CINEMATIC 3D LOADING INTRO STYLES
+   ============================================================ */
+
+.loading-intro-container {
+  perspective: 1200px;
+  perspective-origin: 50% 45%;
+  background: radial-gradient(circle at 50% 40%, #111B32 0%, #0B1020 55%, #050811 100%);
+  overflow: hidden;
+  user-select: none;
+}
+
+/* 3D Holographic Platform & Rings */
+@keyframes spinClockwise {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spinCounterClockwise {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes scanBeamSweep {
+  0% {
+    top: 5%;
+    opacity: 0.2;
+  }
+  25% {
+    opacity: 0.95;
+  }
+  50% {
+    top: 90%;
+    opacity: 0.95;
+  }
+  75% {
+    opacity: 0.95;
+  }
+  100% {
+    top: 5%;
+    opacity: 0.2;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes floatPackage {
+  0%, 100% {
+    transform: translateY(0px) rotateX(16deg) rotateY(-28deg);
+  }
+  50% {
+    transform: translateY(-14px) rotateX(20deg) rotateY(-20deg);
+  }
+}
+
+@keyframes floatParticle {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.8;
+  }
+  80% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-80px) translateX(25px);
+    opacity: 0;
+  }
+}
+
+@keyframes dashFlow {
+  to {
+    stroke-dashoffset: -40;
+  }
+}
+
+/* 3D Cube Package Styling */
+.cube-wrap {
+  width: 140px;
+  height: 120px;
+  position: relative;
+  transform-style: preserve-3d;
+  animation: floatPackage 5s ease-in-out infinite;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cube-face {
+  position: absolute;
+  width: 140px;
+  height: 120px;
+  background: #C3996B;
+  border: 1px solid rgba(139, 90, 43, 0.4);
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.25);
+  backface-visibility: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* 6 Faces of 3D Cardboard Shipping Package (width 140, height 120, depth 100) */
+/* Half depth = 50px */
+.cube-face-front {
+  width: 140px;
+  height: 120px;
+  transform: translateZ(50px);
+  background: linear-gradient(135deg, #CE9E6C 0%, #B98956 100%);
+}
+
+.cube-face-back {
+  width: 140px;
+  height: 120px;
+  transform: rotateY(180deg) translateZ(50px);
+  background: linear-gradient(135deg, #B28352 0%, #9F7142 100%);
+}
+
+.cube-face-right {
+  width: 100px;
+  height: 120px;
+  left: 20px;
+  transform: rotateY(90deg) translateZ(70px);
+  background: linear-gradient(135deg, #B88958 0%, #A67746 100%);
+}
+
+.cube-face-left {
+  width: 100px;
+  height: 120px;
+  left: 20px;
+  transform: rotateY(-90deg) translateZ(70px);
+  background: linear-gradient(135deg, #A47748 0%, #8E6336 100%);
+}
+
+.cube-face-top {
+  width: 140px;
+  height: 100px;
+  top: 10px;
+  transform: rotateX(90deg) translateZ(60px);
+  background: linear-gradient(135deg, #D4A773 0%, #C49462 100%);
+}
+
+.cube-face-bottom {
+  width: 140px;
+  height: 100px;
+  top: 10px;
+  transform: rotateX(-90deg) translateZ(60px);
+  background: #7A532C;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+}
+
+/* Cardboard Tape Strip */
+.tape-strip-h {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 42%;
+  width: 24px;
+  background: rgba(230, 190, 138, 0.55);
+  border-left: 1px dashed rgba(160, 110, 60, 0.4);
+  border-right: 1px dashed rgba(160, 110, 60, 0.4);
+  box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.2);
+}
+
+.tape-strip-v {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 42%;
+  height: 24px;
+  background: rgba(230, 190, 138, 0.55);
+  border-top: 1px dashed rgba(160, 110, 60, 0.4);
+  border-bottom: 1px dashed rgba(160, 110, 60, 0.4);
+  box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.2);
+}
+
+/* Holographic Laser Beam */
+.scan-beam {
+  position: absolute;
+  left: -20px;
+  right: -20px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #22D3EE 20%, #10B981 50%, #22D3EE 80%, transparent 100%);
+  box-shadow: 0 0 16px #22D3EE, 0 0 28px rgba(16, 185, 129, 0.8);
+  animation: scanBeamSweep 2.2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 30;
+}
+
+.scan-beam::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -12px;
+  height: 24px;
+  background: linear-gradient(180deg, rgba(34, 211, 238, 0.15) 0%, rgba(16, 185, 129, 0.3) 50%, transparent 100%);
+  pointer-events: none;
+}
+
+/* Rotating holographic platform ring */
+.holo-ring-1 {
+  animation: spinClockwise 20s linear infinite;
+}
+
+.holo-ring-2 {
+  animation: spinCounterClockwise 14s linear infinite;
+}
+
+.holo-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+.circuit-dash {
+  animation: dashFlow 1.8s linear infinite;
+}
+
+/* Accessibility: reduce motion support */
+@media (prefers-reduced-motion: reduce) {
+  .cube-wrap {
+    animation: none !important;
+    transform: rotateX(15deg) rotateY(-25deg) !important;
+  }
+  .scan-beam {
+    animation: none !important;
+    top: 50% !important;
+    opacity: 0.8 !important;
+  }
+  .holo-ring-1, .holo-ring-2, .holo-glow, .circuit-dash {
+    animation: none !important;
+  }
+}

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { ZoomIn, X, AlertCircle, CheckCircle } from 'lucide-react';
+import { ZoomIn, X, AlertCircle, CheckCircle, Package } from 'lucide-react';
+import { resolveImageUrl } from './ProductThumbnail';
 
 export default function ImageGallery({ images = [], productName = 'Product' }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   if (!images || images.length === 0) {
     return (
@@ -15,18 +17,27 @@ export default function ImageGallery({ images = [], productName = 'Product' }) {
   }
 
   const currentImage = images[selectedIndex] || images[0];
-  const imageUrl = currentImage?.image || '';
+  const imageUrl = resolveImageUrl(currentImage?.image || '');
 
   return (
     <div className="space-y-4">
       {/* Main Image Stage */}
       <div className="relative group overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/60 aspect-square max-h-96 flex items-center justify-center">
-        <img
-          src={imageUrl}
-          alt={`${productName} view`}
-          className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105 cursor-zoom-in"
-          onClick={() => setIsZoomed(true)}
-        />
+        {imageUrl && !hasError ? (
+          <img
+            src={imageUrl}
+            alt={`${productName} view`}
+            className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105 cursor-zoom-in"
+            onClick={() => setIsZoomed(true)}
+            onError={() => setHasError(true)}
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 p-6 text-center">
+            <Package className="w-16 h-16 text-indigo-400/60 mb-2 animate-pulse" />
+            <span className="text-xs font-semibold text-slate-400">{productName}</span>
+            <span className="text-[11px] text-slate-600 mt-0.5">Inspection photo record</span>
+          </div>
+        )}
 
         {/* View & Quality Badges */}
         <div className="absolute top-3 left-3 flex flex-wrap gap-2 pointer-events-none">
@@ -58,18 +69,32 @@ export default function ImageGallery({ images = [], productName = 'Product' }) {
       {images.length > 1 && (
         <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-thin">
           {images.map((img, idx) => {
-            const thumbUrl = img.image || '';
+            const thumbUrl = resolveImageUrl(img.image || '');
             return (
               <button
                 key={img.id || idx}
-                onClick={() => setSelectedIndex(idx)}
-                className={`relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                onClick={() => {
+                  setSelectedIndex(idx);
+                  setHasError(false);
+                }}
+                className={`relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all flex items-center justify-center bg-slate-900 ${
                   selectedIndex === idx
                     ? 'border-indigo-500 shadow-glow-brand ring-1 ring-indigo-500/50'
                     : 'border-slate-800 opacity-60 hover:opacity-100 hover:border-slate-700'
                 }`}
               >
-                <img src={thumbUrl} alt="thumbnail" className="w-full h-full object-cover" />
+                {thumbUrl ? (
+                  <img
+                    src={thumbUrl}
+                    alt="thumbnail"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <Package className="w-5 h-5 text-slate-600" />
+                )}
               </button>
             );
           })}

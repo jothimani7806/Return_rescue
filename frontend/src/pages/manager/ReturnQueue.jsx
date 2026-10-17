@@ -4,6 +4,7 @@ import api from '../../services/api';
 import recordStorage from '../../services/recordStorage';
 import PageHeader from '../../components/common/PageHeader';
 import StatusBadge from '../../components/common/StatusBadge';
+import ProductThumbnail from '../../components/common/ProductThumbnail';
 import {
   Inbox,
   Search,
@@ -350,17 +351,13 @@ export default function ReturnQueue() {
                     {/* Item Thumbnail & Return ID */}
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-800 flex-shrink-0 overflow-hidden flex items-center justify-center">
-                          {ret.images && ret.images.length > 0 ? (
-                            <img
-                              src={ret.images[0].image || ''}
-                              alt="thumbnail"
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <Package className="w-5 h-5 text-slate-600" />
-                          )}
-                        </div>
+                        <ProductThumbnail
+                          images={ret.images}
+                          productName={ret.product_name}
+                          categoryName={ret.category_name}
+                          className="w-12 h-12"
+                          iconSize="w-5 h-5"
+                        />
                         <div>
                           <span className="font-mono font-bold text-indigo-400 block">{ret.return_id}</span>
                           <span className="font-semibold text-white truncate max-w-xs block mt-0.5">

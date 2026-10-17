@@ -6,6 +6,7 @@ import recordStorage from '../../services/recordStorage';
 import PageHeader from '../../components/common/PageHeader';
 import MetricCard from '../../components/common/MetricCard';
 import StatusBadge from '../../components/common/StatusBadge';
+import ProductThumbnail from '../../components/common/ProductThumbnail';
 import {
   PlusCircle,
   ShoppingBag,
@@ -154,17 +155,12 @@ export default function CustomerDashboard() {
               >
                 <div className="flex items-center gap-4">
                   {/* Thumbnail */}
-                  <div className="w-14 h-14 rounded-xl bg-slate-900 border border-slate-800 flex-shrink-0 overflow-hidden flex items-center justify-center">
-                    {ret.images && ret.images.length > 0 ? (
-                      <img
-                        src={ret.images[0].image || ''}
-                        alt="product"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <Package className="w-6 h-6 text-slate-600" />
-                    )}
-                  </div>
+                  <ProductThumbnail
+                    images={ret.images}
+                    productName={ret.product_name}
+                    categoryName={ret.category_name}
+                    className="w-14 h-14"
+                  />
 
                   <div>
                     <div className="flex items-center gap-2">
