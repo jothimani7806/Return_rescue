@@ -23,12 +23,13 @@ import {
 export default function CustomerDashboard() {
   const { user } = useAuth();
   
-  // Initialize immediately from persistent storage so past records never flicker or disappear
+  // Initialize immediately from persistent storage for this user so past records never disappear
   const [returns, setReturns] = useState(() => recordStorage.getReturnsForUser(user, false));
-  const [loading, setLoading] = useState(() => recordStorage.getReturnsForUser(user, false).length === 0);
+  const [loading, setLoading] = useState(() => !user || recordStorage.getReturnsForUser(user, false).length === 0);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchReturns = useCallback(async (isManualRefresh = false) => {
+    if (!user) return;
     if (isManualRefresh) setRefreshing(true);
     try {
       const res = await api.getReturns();
@@ -46,8 +47,21 @@ export default function CustomerDashboard() {
     }
   }, [user]);
 
-  // Sync state whenever recordStorage updates (e.g. from background or other tabs)
+  // Sync state whenever user changes or recordStorage updates
   useEffect(() => {
+    if (!user) {
+      setReturns([]);
+      setLoading(false);
+      return;
+    }
+
+    // Immediately sync returns for the active user
+    const local = recordStorage.getReturnsForUser(user, false);
+    setReturns(local);
+    if (local.length > 0) {
+      setLoading(false);
+    }
+
     const unsubscribe = recordStorage.subscribe(() => {
       const updated = recordStorage.getReturnsForUser(user, false);
       setReturns(updated);
@@ -56,9 +70,10 @@ export default function CustomerDashboard() {
   }, [user]);
 
   useEffect(() => {
-    // Initial fetch from backend
-    fetchReturns();
-  }, [fetchReturns]);
+    if (user) {
+      fetchReturns();
+    }
+  }, [user, fetchReturns]);
 
   const total = returns.length;
   const pending = returns.filter((r) => !r.final_recovery_outcome).length;

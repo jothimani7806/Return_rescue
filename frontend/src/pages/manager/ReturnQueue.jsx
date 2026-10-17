@@ -29,9 +29,9 @@ export default function ReturnQueue() {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Initialize immediately from persistent storage so past records never flicker or disappear
-  const [returns, setReturns] = useState(() => recordStorage.getAllRecords());
-  const [loading, setLoading] = useState(() => recordStorage.getAllRecords().length === 0);
+  // Initialize immediately from persistent manager storage
+  const [returns, setReturns] = useState(() => recordStorage.getAllRecords(null, true));
+  const [loading, setLoading] = useState(() => recordStorage.getAllRecords(null, true).length === 0);
   const [refreshing, setRefreshing] = useState(false);
 
   // Record deletion state
@@ -82,7 +82,7 @@ export default function ReturnQueue() {
       setReturns(applyLocalFilters(allMerged));
     } catch (err) {
       console.warn('Backend getReturns failed; displaying persistent records from storage:', err);
-      const allLocal = recordStorage.getAllRecords();
+      const allLocal = recordStorage.getAllRecords(null, true);
       setReturns(applyLocalFilters(allLocal));
     } finally {
       setLoading(false);
@@ -93,7 +93,7 @@ export default function ReturnQueue() {
   // Subscribe to persistent storage updates
   useEffect(() => {
     const unsubscribe = recordStorage.subscribe(() => {
-      const allLocal = recordStorage.getAllRecords();
+      const allLocal = recordStorage.getAllRecords(null, true);
       setReturns(applyLocalFilters(allLocal));
     });
     return unsubscribe;
@@ -138,9 +138,9 @@ export default function ReturnQueue() {
     fetchReturns();
   };
 
-  const allRecordsCount = recordStorage.getAllRecords().length;
-  const pendingCount = recordStorage.getAllRecords().filter((r) => r.status === 'AWAITING_MANAGER_APPROVAL' || r.status === 'AWAITING_INSPECTION').length;
-  const approvedCount = recordStorage.getAllRecords().filter((r) => Boolean(r.final_recovery_outcome)).length;
+  const allRecordsCount = recordStorage.getAllRecords(null, true).length;
+  const pendingCount = recordStorage.getAllRecords(null, true).filter((r) => r.status === 'AWAITING_MANAGER_APPROVAL' || r.status === 'AWAITING_INSPECTION').length;
+  const approvedCount = recordStorage.getAllRecords(null, true).filter((r) => Boolean(r.final_recovery_outcome)).length;
 
   return (
     <div className="space-y-6">

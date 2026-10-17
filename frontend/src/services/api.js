@@ -144,17 +144,56 @@ export const api = {
   login: (data) => {
     // Clear stale stored tokens before initiating a fresh login attempt
     if (typeof window !== 'undefined') {
-      sessionStorage.removeItem('return_rescue_token');
-      sessionStorage.removeItem('return_rescue_manager_token');
-      sessionStorage.removeItem('return_rescue_customer_token');
-      localStorage.removeItem('return_rescue_token');
-      localStorage.removeItem('return_rescue_manager_token');
-      localStorage.removeItem('return_rescue_customer_token');
+      const keys = [
+        'return_rescue_token',
+        'return_rescue_user',
+        'return_rescue_customer_token',
+        'return_rescue_customer_user',
+        'return_rescue_manager_token',
+        'return_rescue_manager_user',
+      ];
+      keys.forEach((k) => {
+        sessionStorage.removeItem(k);
+        localStorage.removeItem(k);
+      });
     }
     return apiClient.post('/auth/login/', data);
   },
-  register: (data) => apiClient.post('/auth/register/', data),
-  logout: () => apiClient.post('/auth/logout/'),
+  register: (data) => {
+    // Clear stale stored tokens before initiating a fresh registration
+    if (typeof window !== 'undefined') {
+      const keys = [
+        'return_rescue_token',
+        'return_rescue_user',
+        'return_rescue_customer_token',
+        'return_rescue_customer_user',
+        'return_rescue_manager_token',
+        'return_rescue_manager_user',
+      ];
+      keys.forEach((k) => {
+        sessionStorage.removeItem(k);
+        localStorage.removeItem(k);
+      });
+    }
+    return apiClient.post('/auth/register/', data);
+  },
+  logout: () => {
+    if (typeof window !== 'undefined') {
+      const keys = [
+        'return_rescue_token',
+        'return_rescue_user',
+        'return_rescue_customer_token',
+        'return_rescue_customer_user',
+        'return_rescue_manager_token',
+        'return_rescue_manager_user',
+      ];
+      keys.forEach((k) => {
+        sessionStorage.removeItem(k);
+        localStorage.removeItem(k);
+      });
+    }
+    return apiClient.post('/auth/logout/');
+  },
   getCurrentUser: () => apiClient.get('/auth/me/'),
   updateProfile: (data) => apiClient.patch('/auth/profile/', data),
 

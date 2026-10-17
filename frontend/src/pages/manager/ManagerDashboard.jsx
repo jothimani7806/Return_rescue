@@ -386,7 +386,7 @@ export default function ManagerDashboard() {
             <tbody className="divide-y divide-slate-800/60">
               {(() => {
                 // Merge server recent activity with local records to ensure all past returns are visible
-                const localRecords = recordStorage.getAllRecords();
+                const localRecords = recordStorage.getAllRecords(null, true);
                 const list = [...(metrics.recent_activity || [])];
                 const seenIds = new Set(list.map((r) => r.return_id || String(r.id)));
                 

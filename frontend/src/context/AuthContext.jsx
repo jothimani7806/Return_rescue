@@ -104,8 +104,21 @@ export function AuthProvider({ children }) {
     }
     const isMgr = Boolean(userData && (userData.is_manager || userData.profile?.role === 'MANAGER' || userData.profile?.role === 'ADMIN'));
 
-    // Save to tab-isolated sessionStorage and persistent localStorage
+    // Clear previous credentials before saving new authenticated session
     if (typeof window !== 'undefined') {
+      const keys = [
+        'return_rescue_token',
+        'return_rescue_user',
+        'return_rescue_customer_token',
+        'return_rescue_customer_user',
+        'return_rescue_manager_token',
+        'return_rescue_manager_user',
+      ];
+      keys.forEach((k) => {
+        sessionStorage.removeItem(k);
+        localStorage.removeItem(k);
+      });
+
       if (token) {
         sessionStorage.setItem('return_rescue_token', token);
         localStorage.setItem('return_rescue_token', token);
@@ -140,6 +153,19 @@ export function AuthProvider({ children }) {
     const { token, user: userData } = res.data;
 
     if (typeof window !== 'undefined') {
+      const keys = [
+        'return_rescue_token',
+        'return_rescue_user',
+        'return_rescue_customer_token',
+        'return_rescue_customer_user',
+        'return_rescue_manager_token',
+        'return_rescue_manager_user',
+      ];
+      keys.forEach((k) => {
+        sessionStorage.removeItem(k);
+        localStorage.removeItem(k);
+      });
+
       if (token) {
         sessionStorage.setItem('return_rescue_token', token);
         sessionStorage.setItem('return_rescue_customer_token', token);
@@ -166,20 +192,18 @@ export function AuthProvider({ children }) {
       // Ignore background logout errors
     } finally {
       if (typeof window !== 'undefined') {
-        const pathname = window.location.pathname;
-        if (pathname.startsWith('/manager')) {
-          sessionStorage.removeItem('return_rescue_manager_token');
-          sessionStorage.removeItem('return_rescue_manager_user');
-          localStorage.removeItem('return_rescue_manager_token');
-          localStorage.removeItem('return_rescue_manager_user');
-        } else if (pathname.startsWith('/customer')) {
-          sessionStorage.removeItem('return_rescue_customer_token');
-          sessionStorage.removeItem('return_rescue_customer_user');
-          localStorage.removeItem('return_rescue_customer_token');
-          localStorage.removeItem('return_rescue_customer_user');
-        }
-        sessionStorage.removeItem('return_rescue_token');
-        sessionStorage.removeItem('return_rescue_user');
+        const keys = [
+          'return_rescue_token',
+          'return_rescue_user',
+          'return_rescue_customer_token',
+          'return_rescue_customer_user',
+          'return_rescue_manager_token',
+          'return_rescue_manager_user',
+        ];
+        keys.forEach((k) => {
+          sessionStorage.removeItem(k);
+          localStorage.removeItem(k);
+        });
       }
       setUser(null);
     }

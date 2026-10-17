@@ -23,11 +23,12 @@ export default function CustomerReturnDetail() {
   const { id } = useParams();
   const { user } = useAuth();
 
-  // Find in persistent storage immediately to avoid any blank loading screen
-  const initialLocal = () => {
-    const all = recordStorage.getAllRecords();
-    return all.find((r) => r.id === id || r.return_id === id || String(r.id) === String(id)) || null;
-  };
+  // Find in persistent storage strictly for this user to avoid cross-user data leakage
+  const initialLocal = useCallback(() => {
+    if (!user) return null;
+    const userRecords = recordStorage.getReturnsForUser(user, false);
+    return userRecords.find((r) => r.id === id || r.return_id === id || String(r.id) === String(id)) || null;
+  }, [user, id]);
 
   const [returnReq, setReturnReq] = useState(initialLocal);
   const [loading, setLoading] = useState(() => !initialLocal());
@@ -35,10 +36,29 @@ export default function CustomerReturnDetail() {
 
   useEffect(() => {
     let isMounted = true;
+    if (!user) return;
+
     const fetchReturn = async () => {
       try {
         const res = await api.getReturn(id);
         if (isMounted && res.data) {
+          // Strict user ownership check
+          const username = (user.username || '').trim().toLowerCase();
+          const rUsername = (res.data.customer_username || '').trim().toLowerCase();
+          const userId = user.id ? String(user.id) : null;
+          const rCustomerId = res.data.customer ? String(res.data.customer) : null;
+
+          const isOwner =
+            (!rUsername && !rCustomerId) ||
+            (username && rUsername === username) ||
+            (userId && rCustomerId === userId);
+
+          if (!isOwner) {
+            setError('You do not have permission to view this return request.');
+            setReturnReq(null);
+            return;
+          }
+
           setReturnReq(res.data);
           recordStorage.saveRecord(res.data, user);
         }
@@ -48,7 +68,11 @@ export default function CustomerReturnDetail() {
         if (local) {
           if (isMounted) setReturnReq(local);
         } else if (isMounted) {
-          setError('Unable to load return details. You may not have permission to view this record.');
+          setError(
+            err.response?.status === 404 || err.response?.status === 403
+              ? 'Return request not found or you do not have permission to view it.'
+              : 'Unable to load return details. Please verify your connection.'
+          );
         }
       } finally {
         if (isMounted) setLoading(false);
@@ -57,7 +81,7 @@ export default function CustomerReturnDetail() {
 
     fetchReturn();
 
-    // Subscribe to record storage updates (e.g. manager approval)
+    // Subscribe to record storage updates strictly for this user
     const unsubscribe = recordStorage.subscribe(() => {
       const updated = initialLocal();
       if (updated && isMounted) {
@@ -69,7 +93,7 @@ export default function CustomerReturnDetail() {
       isMounted = false;
       unsubscribe();
     };
-  }, [id, user]);
+  }, [id, user, initialLocal]);
 
   if (loading && !returnReq) {
     return <div className="py-20 text-center text-slate-500 text-sm">Loading return request...</div>;
