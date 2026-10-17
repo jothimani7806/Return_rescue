@@ -9,7 +9,7 @@ if (envBase) {
 
 const apiClient = axios.create({
   baseURL: ROOT_BASE || undefined,
-  withCredentials: true,
+  timeout: 45000,
   headers: {
     'Accept': 'application/json',
   },

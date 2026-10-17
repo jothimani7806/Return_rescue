@@ -72,13 +72,16 @@ export const recordStorage = {
     if (isManager) return all;
 
     const username = (user.username || '').toLowerCase();
-    const userId = user.id;
+    const userEmail = (user.email || '').toLowerCase();
+    const userId = user.id ? String(user.id) : null;
 
     return all.filter((r) => {
       const rUsername = (r.customer_username || '').toLowerCase();
-      const rCustomerId = r.customer;
+      const rEmail = (r.customer_email || '').toLowerCase();
+      const rCustomerId = r.customer ? String(r.customer) : null;
       return (
         (username && rUsername === username) ||
+        (userEmail && rEmail === userEmail) ||
         (userId && rCustomerId === userId)
       );
     });
@@ -186,7 +189,13 @@ export const recordStorage = {
       const key = sr.return_id || String(sr.id);
       if (key) {
         const existing = mergedMap.get(key) || {};
-        mergedMap.set(key, { ...existing, ...sr });
+        const pName = sr.product_name || sr.item_name || existing.product_name || existing.item_name || 'Returned Item';
+        mergedMap.set(key, {
+          ...existing,
+          ...sr,
+          product_name: pName,
+          item_name: pName,
+        });
       }
     });
 
@@ -205,12 +214,15 @@ export const recordStorage = {
     }
     if (currentUser) {
       const username = (currentUser.username || '').toLowerCase();
-      const userId = currentUser.id;
+      const userEmail = (currentUser.email || '').toLowerCase();
+      const userId = currentUser.id ? String(currentUser.id) : null;
       return mergedList.filter((r) => {
         const rUsername = (r.customer_username || '').toLowerCase();
-        const rCustomerId = r.customer;
+        const rEmail = (r.customer_email || '').toLowerCase();
+        const rCustomerId = r.customer ? String(r.customer) : null;
         return (
           (username && rUsername === username) ||
+          (userEmail && rEmail === userEmail) ||
           (userId && rCustomerId === userId)
         );
       });

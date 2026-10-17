@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
 import {
   Lock,
   User,
@@ -29,6 +30,11 @@ export default function LoginForm({ initialPortal = 'customer' }) {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Background wake-up ping to eliminate cloud cold-start spin-up delay
+  useEffect(() => {
+    api.getCategories().catch(() => {});
+  }, []);
 
   // Sync with initialPortal prop if changed via route
   useEffect(() => {
@@ -79,10 +85,16 @@ export default function LoginForm({ initialPortal = 'customer' }) {
         navigate('/customer/dashboard');
       }
     } catch (err) {
-      const msg =
-        err.response?.data?.error ||
-        'Authentication failed. Please verify your username/email and password.';
-      setError(msg);
+      console.warn('Sign-in error:', err);
+      if (err.response?.data?.error) {
+        setError(err.response.data.error);
+      } else if (err.code === 'ECONNABORTED' || err.message?.toLowerCase().includes('timeout')) {
+        setError('Server response timed out. The backend is waking up from idle (~30s on free tier). Please click Sign In again.');
+      } else if (!err.response || err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
+        setError('Unable to reach server. The cloud backend is spinning up from idle (~30s). Please wait a few seconds and try again.');
+      } else {
+        setError('Authentication failed. Please verify your username/email and password.');
+      }
     } finally {
       setLoading(false);
     }
@@ -295,6 +307,10 @@ export default function LoginForm({ initialPortal = 'customer' }) {
                 <ShieldCheck className="w-3 h-3 text-indigo-400" />
                 <span>Manager Demo</span>
               </button>
+            </div>
+            <div className="mt-2.5 text-[10px] text-slate-500 text-center flex flex-col gap-0.5 font-mono">
+              <span>Demo: <span className="text-emerald-400 font-semibold">customer</span> / <span className="text-emerald-400">Customer@123</span> &bull; <span className="text-indigo-400 font-semibold">manager</span> / <span className="text-indigo-400">Manager@123</span></span>
+              <span className="text-slate-400">Registered users: use username/email & password created at registration</span>
             </div>
           </div>
 
