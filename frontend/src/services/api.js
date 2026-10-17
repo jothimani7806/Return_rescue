@@ -23,7 +23,21 @@ apiClient.interceptors.request.use((config) => {
   if (config.url && !config.url.startsWith('/api') && !config.url.startsWith('http')) {
     config.url = `/api${config.url.startsWith('/') ? '' : '/'}${config.url}`;
   }
-  // 1. Tab-isolated & Route-aware Token Authentication
+
+  // 2. Explicitly bypass Authorization header for login & register
+  // This prevents DRF from rejecting login requests with "Invalid token." when stale tokens exist in browser storage!
+  const isAuthEndpoint =
+    config.url &&
+    (config.url.includes('/auth/login') || config.url.includes('/auth/register'));
+
+  if (isAuthEndpoint) {
+    if (config.headers) {
+      delete config.headers['Authorization'];
+    }
+    return config;
+  }
+
+  // 3. Tab-isolated & Route-aware Token Authentication for protected endpoints
   if (typeof window !== 'undefined') {
     let token = null;
     const pathname = window.location.pathname;
@@ -98,6 +112,24 @@ apiClient.interceptors.response.use(
       error.code === 'ECONNABORTED' ||
       [502, 503, 504].includes(error.response?.status);
 
+    // Automatic cleanup if server reports token is invalid
+    if (error.response?.status === 401 && error.response?.data?.detail === 'Invalid token.') {
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('return_rescue_token');
+        sessionStorage.removeItem('return_rescue_user');
+        sessionStorage.removeItem('return_rescue_manager_token');
+        sessionStorage.removeItem('return_rescue_manager_user');
+        sessionStorage.removeItem('return_rescue_customer_token');
+        sessionStorage.removeItem('return_rescue_customer_user');
+        localStorage.removeItem('return_rescue_token');
+        localStorage.removeItem('return_rescue_user');
+        localStorage.removeItem('return_rescue_manager_token');
+        localStorage.removeItem('return_rescue_manager_user');
+        localStorage.removeItem('return_rescue_customer_token');
+        localStorage.removeItem('return_rescue_customer_user');
+      }
+    }
+
     if (isNetworkOrServerDown) {
       config._retried = true;
       config.baseURL = RENDER_DIRECT_URL;
@@ -109,7 +141,18 @@ apiClient.interceptors.response.use(
 
 export const api = {
   // Auth
-  login: (data) => apiClient.post('/auth/login/', data),
+  login: (data) => {
+    // Clear stale stored tokens before initiating a fresh login attempt
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('return_rescue_token');
+      sessionStorage.removeItem('return_rescue_manager_token');
+      sessionStorage.removeItem('return_rescue_customer_token');
+      localStorage.removeItem('return_rescue_token');
+      localStorage.removeItem('return_rescue_manager_token');
+      localStorage.removeItem('return_rescue_customer_token');
+    }
+    return apiClient.post('/auth/login/', data);
+  },
   register: (data) => apiClient.post('/auth/register/', data),
   logout: () => apiClient.post('/auth/logout/'),
   getCurrentUser: () => apiClient.get('/auth/me/'),

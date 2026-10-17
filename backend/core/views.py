@@ -11,7 +11,7 @@ from django.contrib.auth.models import User
 
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import viewsets, status, permissions
-from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.decorators import api_view, permission_classes, authentication_classes, action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.authtoken.models import Token
@@ -66,6 +66,7 @@ from .dataset_service import DatasetAcquisitionService
 
 @csrf_exempt
 @api_view(['POST'])
+@authentication_classes([])
 @permission_classes([permissions.AllowAny])
 def register_user(request):
     """
@@ -106,6 +107,7 @@ def register_user(request):
 
 @csrf_exempt
 @api_view(['POST'])
+@authentication_classes([])
 @permission_classes([permissions.AllowAny])
 def login_user(request):
     """
