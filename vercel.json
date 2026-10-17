@@ -4,12 +4,12 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "https://return-rescue.onrender.com/api/:path*"
+      "source": "/api/(.*)",
+      "destination": "https://return-rescue.onrender.com/api/$1"
     },
     {
-      "source": "/media/:path*",
-      "destination": "https://return-rescue.onrender.com/media/:path*"
+      "source": "/media/(.*)",
+      "destination": "https://return-rescue.onrender.com/media/$1"
     },
     {
       "source": "/(.*)",

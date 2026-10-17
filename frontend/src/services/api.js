@@ -2,16 +2,11 @@ import axios from 'axios';
 
 const RENDER_DIRECT_URL = 'https://return-rescue.onrender.com';
 let envBase = import.meta.env.VITE_API_BASE;
-let ROOT_BASE = '';
+let ROOT_BASE = RENDER_DIRECT_URL;
 
-if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
-  // Use Vercel's same-origin edge proxy to eliminate all browser CORS and adblocker issues
-  ROOT_BASE = '';
-} else if (envBase) {
+if (envBase) {
   const clean = envBase.replace(/\/+$/, '');
   ROOT_BASE = clean.endsWith('/api') ? clean.slice(0, -4) : clean;
-} else {
-  ROOT_BASE = RENDER_DIRECT_URL;
 }
 
 const apiClient = axios.create({
@@ -76,10 +71,22 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Automatic dual-channel fallback: If Vercel proxy gives 502/network error during cold-start,
-// seamlessly retry directly against Render cloud backend, and vice-versa!
+// Automatic dual-channel fallback: If HTML was returned or server was waking up,
+// seamlessly retry directly against Render cloud backend!
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // If an HTML document was mistakenly returned instead of API JSON (e.g. SPA fallback)
+    if (
+      typeof response.data === 'string' &&
+      response.data.includes('<!doctype html>') &&
+      !response.config._htmlRetried
+    ) {
+      response.config._htmlRetried = true;
+      response.config.baseURL = RENDER_DIRECT_URL;
+      return apiClient(response.config);
+    }
+    return response;
+  },
   async (error) => {
     const config = error.config;
     if (!config || config._retried) {
@@ -93,12 +100,7 @@ apiClient.interceptors.response.use(
 
     if (isNetworkOrServerDown) {
       config._retried = true;
-      // Switch destination
-      if (!config.baseURL || !config.baseURL.startsWith('http')) {
-        config.baseURL = RENDER_DIRECT_URL;
-      } else {
-        config.baseURL = undefined; // Try relative proxy
-      }
+      config.baseURL = RENDER_DIRECT_URL;
       return apiClient(config);
     }
     return Promise.reject(error);

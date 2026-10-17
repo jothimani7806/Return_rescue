@@ -95,7 +95,13 @@ export function AuthProvider({ children }) {
 
   const login = async (username, password, portal = null) => {
     const res = await api.login({ username, password, portal });
+    if (!res.data || typeof res.data !== 'object') {
+      throw new Error('Unexpected response format from server. Please try again.');
+    }
     const { token, user: userData } = res.data;
+    if (!token || !userData) {
+      throw new Error(res.data?.error || 'Authentication failed. Please verify your credentials.');
+    }
     const isMgr = Boolean(userData && (userData.is_manager || userData.profile?.role === 'MANAGER' || userData.profile?.role === 'ADMIN'));
 
     // Save to tab-isolated sessionStorage and persistent localStorage
