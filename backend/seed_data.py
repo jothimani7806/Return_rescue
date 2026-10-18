@@ -47,31 +47,34 @@ def run_seed():
     print("========================================")
 
     # 1. USERS
-    admin_user, _ = User.objects.get_or_create(
+    admin_user, admin_created = User.objects.get_or_create(
         username='admin',
         defaults={'email': 'admin@returnrescue.io', 'is_staff': True, 'is_superuser': True}
     )
-    admin_user.set_password('Admin@123')
-    admin_user.save()
-    UserProfile.objects.update_or_create(user=admin_user, defaults={'role': UserRole.ADMIN})
+    if admin_created:
+        admin_user.set_password('Admin@123')
+        admin_user.save()
+    UserProfile.objects.get_or_create(user=admin_user, defaults={'role': UserRole.ADMIN})
 
-    manager_user, _ = User.objects.get_or_create(
+    manager_user, mgr_created = User.objects.get_or_create(
         username='manager',
         defaults={'email': 'manager@returnrescue.io', 'first_name': 'Jothimani', 'last_name': '', 'is_staff': True}
     )
-    manager_user.set_password('Manager@123')
-    manager_user.save()
-    UserProfile.objects.update_or_create(user=manager_user, defaults={'role': UserRole.MANAGER, 'department': 'Returns Operations'})
+    if mgr_created:
+        manager_user.set_password('Manager@123')
+        manager_user.save()
+    UserProfile.objects.get_or_create(user=manager_user, defaults={'role': UserRole.MANAGER, 'department': 'Returns Operations'})
 
-    customer_user, _ = User.objects.get_or_create(
+    customer_user, cust_created = User.objects.get_or_create(
         username='customer',
         defaults={'email': 'alex.morgan@example.com', 'first_name': 'Alex', 'last_name': 'Morgan'}
     )
-    customer_user.set_password('Customer@123')
-    customer_user.save()
-    UserProfile.objects.update_or_create(user=customer_user, defaults={'role': UserRole.CUSTOMER, 'phone_number': '+1-555-0199'})
+    if cust_created:
+        customer_user.set_password('Customer@123')
+        customer_user.save()
+    UserProfile.objects.get_or_create(user=customer_user, defaults={'role': UserRole.CUSTOMER, 'phone_number': '+1-555-0199'})
 
-    print("[+] Users created: admin / manager / customer (passwords: Admin@123, Manager@123, Customer@123)")
+    print("[+] Users initialized: admin / manager / customer (passwords preserved)")
 
     # 2. PRODUCT CATEGORIES (Comprehensive Catalog)
     catalog_spec = [

@@ -63,7 +63,8 @@ def run_tests():
         headers={"Authorization": f"Token {mgr_token}"}
     )
     assert res_returns.status_code == 200
-    returns_list = res_returns.json().get('results', res_returns.json())
+    data = res_returns.json()
+    returns_list = data if isinstance(data, list) else data.get('results', [])
     assert len(returns_list) > 0, "No returns found to test delete!"
 
     target_return = returns_list[0]

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
-import recordStorage from '../../services/recordStorage';
 import PageHeader from '../../components/common/PageHeader';
 import MetricCard from '../../components/common/MetricCard';
 import StatusBadge from '../../components/common/StatusBadge';
@@ -23,50 +22,29 @@ import {
 export default function CustomerDashboard() {
   const { user } = useAuth();
   
-  // Initialize immediately from persistent storage for this user so past records never disappear
-  const [returns, setReturns] = useState(() => recordStorage.getReturnsForUser(user, false));
-  const [loading, setLoading] = useState(() => !user || recordStorage.getReturnsForUser(user, false).length === 0);
+  const [returns, setReturns] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
 
   const fetchReturns = useCallback(async (isManualRefresh = false) => {
     if (!user) return;
     if (isManualRefresh) setRefreshing(true);
+    else setLoading(true);
+    setError('');
+
     try {
       const res = await api.getReturns();
-      const rawData = res.data.results || res.data || [];
-      const merged = recordStorage.mergeServerRecords(rawData, user, false);
-      setReturns(merged);
+      const rawData = Array.isArray(res.data) ? res.data : (res.data.results || []);
+      setReturns(rawData);
     } catch (err) {
-      console.warn('Backend fetch failed or timed out; relying on persistent local storage:', err);
-      // Fallback to persistent storage to ensure zero data loss
-      const local = recordStorage.getReturnsForUser(user, false);
-      setReturns(local);
+      console.error('Failed to fetch returns from backend:', err);
+      const msg = err.response?.data?.error || err.response?.data?.detail || 'Unable to connect to the return service. Please click Retry.';
+      setError(msg);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [user]);
-
-  // Sync state whenever user changes or recordStorage updates
-  useEffect(() => {
-    if (!user) {
-      setReturns([]);
-      setLoading(false);
-      return;
-    }
-
-    // Immediately sync returns for the active user
-    const local = recordStorage.getReturnsForUser(user, false);
-    setReturns(local);
-    if (local.length > 0) {
-      setLoading(false);
-    }
-
-    const unsubscribe = recordStorage.subscribe(() => {
-      const updated = recordStorage.getReturnsForUser(user, false);
-      setReturns(updated);
-    });
-    return unsubscribe;
   }, [user]);
 
   useEffect(() => {
@@ -105,6 +83,22 @@ export default function CustomerDashboard() {
           </Link>
         </div>
       </PageHeader>
+
+      {/* Error Alert */}
+      {error && (
+        <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+          <button
+            onClick={() => fetchReturns(true)}
+            className="px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 font-semibold transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

@@ -1,3 +1,9 @@
+databases:
+  - name: return-rescue-db
+    databaseName: returnrescue
+    user: returnrescue_user
+    plan: free
+
 services:
   - type: web
     name: return-rescue-backend
@@ -12,3 +18,9 @@ services:
         generateValue: true
       - key: PYTHON_VERSION
         value: "3.11.9"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: return-rescue-db
+          property: connectionString
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://*.vercel.app,https://*.onrender.com"

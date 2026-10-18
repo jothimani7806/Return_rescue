@@ -16,7 +16,8 @@ import {
   ShieldAlert,
   Sparkles,
   ShoppingBag,
-  Settings
+  Settings,
+  Users
 } from 'lucide-react';
 
 export default function Sidebar({ isOpen, setIsOpen }) {
@@ -28,6 +29,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
   const managerLinks = [
     { name: 'Overview', path: '/manager/dashboard', icon: LayoutDashboard },
     { name: 'Return Queue', path: '/manager/returns', icon: Inbox },
+    { name: 'Customers', path: '/manager/customers', icon: Users },
     { name: 'Inventory', path: '/manager/inventory', icon: Boxes },
     { name: 'Dataset Management', path: '/manager/datasets', icon: Database },
     { name: 'Category & Rules', path: '/manager/catalog', icon: Sliders },

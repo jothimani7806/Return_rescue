@@ -122,6 +122,9 @@ class ReturnRequestSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
     customer_username = serializers.CharField(source='customer.username', read_only=True)
     customer_email = serializers.CharField(source='customer.email', read_only=True)
+    customer_first_name = serializers.CharField(source='customer.first_name', read_only=True)
+    customer_last_name = serializers.CharField(source='customer.last_name', read_only=True)
+    customer_phone = serializers.CharField(source='customer.profile.phone_number', read_only=True, default='')
     return_reason_display = serializers.CharField(source='get_return_reason_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     final_recovery_outcome_display = serializers.CharField(source='get_final_recovery_outcome_display', read_only=True)
@@ -134,6 +137,20 @@ class ReturnRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReturnRequest
         fields = '__all__'
+
+class CustomerListSerializer(serializers.ModelSerializer):
+    role = serializers.CharField(source='profile.role', read_only=True, default='CUSTOMER')
+    phone_number = serializers.CharField(source='profile.phone_number', read_only=True, default='')
+    department = serializers.CharField(source='profile.department', read_only=True, default='')
+    returns_count = serializers.IntegerField(read_only=True, default=0)
+
+    class Meta:
+        model = User
+        fields = [
+            'id', 'username', 'email', 'first_name', 'last_name',
+            'role', 'phone_number', 'department', 'is_active',
+            'date_joined', 'last_login', 'returns_count'
+        ]
 
 class DatasetSourceSerializer(serializers.ModelSerializer):
     platform_display = serializers.CharField(source='get_platform_display', read_only=True)

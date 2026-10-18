@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
-import recordStorage from '../../services/recordStorage';
 import PageHeader from '../../components/common/PageHeader';
 import MetricCard from '../../components/common/MetricCard';
 import StatusBadge from '../../components/common/StatusBadge';
@@ -384,29 +383,14 @@ export default function ManagerDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
-              {(() => {
-                // Merge server recent activity with local records to ensure all past returns are visible
-                const localRecords = recordStorage.getAllRecords(null, true);
-                const list = [...(metrics.recent_activity || [])];
-                const seenIds = new Set(list.map((r) => r.return_id || String(r.id)));
-                
-                localRecords.forEach((lr) => {
-                  const key = lr.return_id || String(lr.id);
-                  if (!seenIds.has(key)) {
-                    seenIds.add(key);
-                    list.push({
-                      id: lr.id || lr.return_id,
-                      return_id: lr.return_id,
-                      product_name: lr.product_name,
-                      category: lr.category_name || 'General Product',
-                      status: lr.status,
-                      outcome: lr.final_recovery_outcome,
-                      created_at: lr.created_at
-                    });
-                  }
-                });
-
-                return list.map((r) => (
+              {(!metrics.recent_activity || metrics.recent_activity.length === 0) ? (
+                <tr>
+                  <td colSpan="6" className="py-8 text-center text-slate-500">
+                    No recent return requests recorded in the database.
+                  </td>
+                </tr>
+              ) : (
+                metrics.recent_activity.map((r) => (
                   <tr key={r.id || r.return_id} className="hover:bg-slate-900/40 transition-colors">
                     <td className="py-3 px-3 font-mono font-bold text-indigo-400">{r.return_id}</td>
                     <td className="py-3 px-3 font-semibold text-white max-w-xs truncate">{r.product_name}</td>
@@ -426,8 +410,8 @@ export default function ManagerDashboard() {
                       </Link>
                     </td>
                   </tr>
-                ));
-              })()}
+                ))
+              )}
             </tbody>
           </table>
         </div>

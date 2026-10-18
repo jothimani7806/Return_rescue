@@ -56,7 +56,6 @@ export default function ReturnInspection() {
     setError('');
     try {
       await api.deleteReturn(id);
-      recordStorage.deleteRecord(id);
       navigate('/manager/returns');
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to delete return record.');
@@ -74,40 +73,59 @@ export default function ReturnInspection() {
   });
 
   const fetchRecord = async () => {
+    let recordData = null;
+
     try {
       const res = await api.getReturn(id);
-      const data = res.data;
-      setReturnReq(data);
-      if (data) {
-        recordStorage.saveRecord(data);
+      if (res && res.data) {
+        recordData = res.data;
+        recordStorage.saveRecord(recordData);
       }
+    } catch (err) {
+      console.warn('Inspection fetchRecord server error:', err);
+    }
 
-      if (data.decision) {
-        if (data.decision.is_override) {
+    // Fallback to local persistent storage if server does not have the record (e.g. ID 17 or client-cached)
+    if (!recordData) {
+      const searchId = String(id).trim().toLowerCase();
+      const allLocal = recordStorage.getAllRecords(null, true);
+      recordData = allLocal.find((r) => {
+        const matchNumeric = r.id && String(r.id).toLowerCase() === searchId;
+        const matchPublic = r.return_id && String(r.return_id).toLowerCase() === searchId;
+        return matchNumeric || matchPublic;
+      }) || null;
+    }
+
+    if (recordData) {
+      setReturnReq(recordData);
+      setError('');
+
+      if (recordData.decision) {
+        if (recordData.decision.is_override) {
           setDecisionMode('OVERRIDE');
-          setOverrideAction(data.decision.final_action);
-          setDecisionReason(data.decision.override_reason || '');
-        } else if (data.decision.final_action === 'REJECTED') {
+          setOverrideAction(recordData.decision.final_action);
+          setDecisionReason(recordData.decision.override_reason || '');
+        } else if (recordData.decision.final_action === 'REJECTED') {
           setDecisionMode('REJECT');
-          setDecisionReason(data.decision.override_reason || '');
-        } else if (data.decision.final_action === 'MANUAL_INSPECTION') {
+          setDecisionReason(recordData.decision.override_reason || '');
+        } else if (recordData.decision.final_action === 'MANUAL_INSPECTION') {
           setDecisionMode('FLAG_MANUAL');
-          setDecisionReason(data.decision.override_reason || '');
-        } else if (data.decision.final_action === 'INFO_REQUESTED') {
+          setDecisionReason(recordData.decision.override_reason || '');
+        } else if (recordData.decision.final_action === 'INFO_REQUESTED') {
           setDecisionMode('REQUEST_INFO');
-          setDecisionReason(data.decision.override_reason || '');
+          setDecisionReason(recordData.decision.override_reason || '');
         } else {
           setDecisionMode('APPROVE');
         }
-        setManagerNotes(data.decision.manager_notes || '');
-      } else if (data.recommendation) {
+        setManagerNotes(recordData.decision.manager_notes || '');
+      } else if (recordData.recommendation) {
         setDecisionMode('APPROVE');
       }
-    } catch (err) {
-      setError('Failed to fetch return inspection record.');
-    } finally {
-      setLoading(false);
+    } else {
+      setError(`Return request #${id} was not found in the database. It may have been deleted or the identifier is invalid.`);
     }
+
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -185,9 +203,6 @@ export default function ReturnInspection() {
       });
 
       setReturnReq(res.data);
-      if (res.data) {
-        recordStorage.updateRecord(id, res.data);
-      }
       setShowConfirmModal(false);
       setSuccessMsg(`Decision successfully executed: Recorded as ${finalActionValue}.`);
     } catch (err) {
@@ -198,16 +213,43 @@ export default function ReturnInspection() {
   };
 
   if (loading) {
-    return <div className="py-24 text-center text-slate-500 text-sm">Loading inspection workspace...</div>;
+    return (
+      <div className="py-24 text-center space-y-3">
+        <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-slate-400 text-sm font-medium">Loading inspection record #{id}...</p>
+      </div>
+    );
   }
 
-  if (error && !returnReq) {
+  if (error || !returnReq) {
     return (
-      <div className="py-16 text-center space-y-4">
-        <p className="text-sm text-rose-400">{error}</p>
-        <Link to="/manager/returns" className="text-xs text-indigo-400 font-bold hover:underline">
-          Back to Queue
-        </Link>
+      <div className="max-w-lg mx-auto py-20 text-center space-y-5">
+        <div className="w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto text-2xl">
+          <AlertOctagon className="w-7 h-7 text-rose-400" />
+        </div>
+        <div className="space-y-1.5">
+          <h2 className="text-lg font-bold text-white">Inspection Record Unavailable</h2>
+          <p className="text-xs text-rose-300 leading-relaxed max-w-md mx-auto">{error || 'Return inspection record not found.'}</p>
+        </div>
+        <div className="flex items-center justify-center gap-3 pt-3">
+          <button
+            onClick={() => {
+              setLoading(true);
+              setError('');
+              fetchRecord();
+            }}
+            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-glow-brand"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Retry Inspection Fetch</span>
+          </button>
+          <Link
+            to="/manager/returns"
+            className="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white text-xs font-semibold transition-colors inline-block"
+          >
+            Back to Queue
+          </Link>
+        </div>
       </div>
     );
   }

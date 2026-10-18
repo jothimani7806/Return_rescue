@@ -1,8 +1,7 @@
 import axios from 'axios';
 
-const RENDER_DIRECT_URL = 'https://return-rescue.onrender.com';
 let envBase = import.meta.env.VITE_API_BASE;
-let ROOT_BASE = RENDER_DIRECT_URL;
+let ROOT_BASE = '';
 
 if (envBase) {
   const clean = envBase.replace(/\/+$/, '');
@@ -63,7 +62,7 @@ apiClient.interceptors.request.use((config) => {
     }
   }
 
-  // 2. CSRF cookie from Django if present
+  // 4. CSRF cookie from Django if present
   const getCookie = (name) => {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -85,55 +84,26 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Automatic dual-channel fallback: If HTML was returned or server was waking up,
-// seamlessly retry directly against Render cloud backend!
+// Response interceptor for error handling
 apiClient.interceptors.response.use(
-  (response) => {
-    // If an HTML document was mistakenly returned instead of API JSON (e.g. SPA fallback)
-    if (
-      typeof response.data === 'string' &&
-      response.data.includes('<!doctype html>') &&
-      !response.config._htmlRetried
-    ) {
-      response.config._htmlRetried = true;
-      response.config.baseURL = RENDER_DIRECT_URL;
-      return apiClient(response.config);
-    }
-    return response;
-  },
+  (response) => response,
   async (error) => {
-    const config = error.config;
-    if (!config || config._retried) {
-      return Promise.reject(error);
-    }
-    const isNetworkOrServerDown =
-      !error.response ||
-      error.code === 'ERR_NETWORK' ||
-      error.code === 'ECONNABORTED' ||
-      [502, 503, 504].includes(error.response?.status);
-
-    // Automatic cleanup if server reports token is invalid
+    // Clean up stale tokens if server reports token is invalid on a protected route
     if (error.response?.status === 401 && error.response?.data?.detail === 'Invalid token.') {
       if (typeof window !== 'undefined') {
-        sessionStorage.removeItem('return_rescue_token');
-        sessionStorage.removeItem('return_rescue_user');
-        sessionStorage.removeItem('return_rescue_manager_token');
-        sessionStorage.removeItem('return_rescue_manager_user');
-        sessionStorage.removeItem('return_rescue_customer_token');
-        sessionStorage.removeItem('return_rescue_customer_user');
-        localStorage.removeItem('return_rescue_token');
-        localStorage.removeItem('return_rescue_user');
-        localStorage.removeItem('return_rescue_manager_token');
-        localStorage.removeItem('return_rescue_manager_user');
-        localStorage.removeItem('return_rescue_customer_token');
-        localStorage.removeItem('return_rescue_customer_user');
+        const keys = [
+          'return_rescue_token',
+          'return_rescue_user',
+          'return_rescue_manager_token',
+          'return_rescue_manager_user',
+          'return_rescue_customer_token',
+          'return_rescue_customer_user',
+        ];
+        keys.forEach((k) => {
+          sessionStorage.removeItem(k);
+          localStorage.removeItem(k);
+        });
       }
-    }
-
-    if (isNetworkOrServerDown) {
-      config._retried = true;
-      config.baseURL = RENDER_DIRECT_URL;
-      return apiClient(config);
     }
     return Promise.reject(error);
   }
@@ -227,6 +197,10 @@ export const api = {
   // Inventory & Audits
   getInventory: () => apiClient.get('/inventory/'),
   getAuditLogs: () => apiClient.get('/audit-logs/'),
+
+  // Customers (Manager)
+  getCustomers: (params) => apiClient.get('/customers/', { params }),
+  toggleCustomerStatus: (id) => apiClient.post(`/customers/${id}/toggle-status/`),
 
   // Notifications
   getNotifications: () => apiClient.get('/notifications/'),

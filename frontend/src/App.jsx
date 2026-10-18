@@ -16,6 +16,7 @@ import CustomerReturnDetail from './pages/customer/CustomerReturnDetail';
 import ManagerDashboard from './pages/manager/ManagerDashboard';
 import ReturnQueue from './pages/manager/ReturnQueue';
 import ReturnInspection from './pages/manager/ReturnInspection';
+import CustomerManagement from './pages/manager/CustomerManagement';
 import InventoryPage from './pages/manager/InventoryPage';
 import DatasetManagement from './pages/manager/DatasetManagement';
 import CategoryAdmin from './pages/manager/CategoryAdmin';
@@ -133,6 +134,14 @@ export default function App() {
               element={
                 <ProtectedRoute requiredRole="manager">
                   <ReturnQueue />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/manager/customers"
+              element={
+                <ProtectedRoute requiredRole="manager">
+                  <CustomerManagement />
                 </ProtectedRoute>
               }
             />

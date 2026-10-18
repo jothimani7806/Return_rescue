@@ -40,6 +40,7 @@ from .models import (
 )
 from .serializers import (
     UserSerializer,
+    CustomerListSerializer,
     ProductCategorySerializer,
     ProductSubcategorySerializer,
     ProductSerializer,
@@ -61,7 +62,7 @@ from .ml_inference import VisualInspectionPipeline
 from .dataset_service import DatasetAcquisitionService
 
 # ==========================================
-# AUTHENTICATION VIEWS
+# AUTHENTICATION & CUSTOMER ACCOUNT VIEWS
 # ==========================================
 
 @csrf_exempt
@@ -71,36 +72,53 @@ from .dataset_service import DatasetAcquisitionService
 def register_user(request):
     """
     Public customer registration.
+    Customer registration validates input, hashes password, saves persistently to database,
+    strictly assigns CUSTOMER role, and issues authentication token.
     Customer registration NEVER grants manager permissions.
     """
     username = request.data.get('username', '').strip()
     email = request.data.get('email', '').strip()
     password = request.data.get('password', '')
-    first_name = request.data.get('first_name', '')
-    last_name = request.data.get('last_name', '')
+    first_name = request.data.get('first_name', '').strip()
+    last_name = request.data.get('last_name', '').strip()
 
     if not username or not password:
         return Response({'error': 'Username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    if User.objects.filter(username=username).exists():
+    if not email:
+        return Response({'error': 'Email address is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Check username uniqueness case-insensitively
+    if User.objects.filter(username__iexact=username).exists():
         return Response({'error': 'A user with that username already exists.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    user = User.objects.create_user(
-        username=username,
-        email=email,
-        password=password,
-        first_name=first_name,
-        last_name=last_name
-    )
+    # Check email uniqueness case-insensitively
+    if User.objects.filter(email__iexact=email).exists():
+        return Response({'error': 'An account with that email address already exists.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Strictly assign CUSTOMER role
-    profile = UserProfile.objects.create(
-        user=user,
-        role=UserRole.CUSTOMER
-    )
+    if len(password) < 6:
+        return Response({'error': 'Password must be at least 6 characters long.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    login(request, user)
-    token, _ = Token.objects.get_or_create(user=user)
+    try:
+        with transaction.atomic():
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name
+            )
+
+            # Strictly assign CUSTOMER role
+            UserProfile.objects.create(
+                user=user,
+                role=UserRole.CUSTOMER
+            )
+
+            token, _ = Token.objects.get_or_create(user=user)
+    except Exception as e:
+        return Response({'error': f'Failed to register account: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     serializer = UserSerializer(user)
     return Response({'message': 'Registration successful.', 'token': token.key, 'user': serializer.data}, status=status.HTTP_201_CREATED)
 
@@ -113,6 +131,7 @@ def login_user(request):
     """
     Standard authentication login.
     Supports email or username authentication, portal role verification, and token issuance.
+    Uses case-insensitive lookup for username/email and Django's secure password verification.
     """
     identifier = request.data.get('username', '').strip()
     password = request.data.get('password', '')
@@ -121,56 +140,122 @@ def login_user(request):
     if not identifier or not password:
         return Response({'error': 'Username or email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    user = None
+    # Resolve candidate user by email or username case-insensitively
     candidate = None
     if '@' in identifier:
         candidate = User.objects.filter(email__iexact=identifier).first()
-        if candidate:
-            user = authenticate(request, username=candidate.username, password=password)
+    if candidate is None:
+        candidate = User.objects.filter(username__iexact=identifier).first()
+
+    user = None
+    if candidate is not None:
+        user = authenticate(request, username=candidate.username, password=password)
+        if user is None and not candidate.is_active and candidate.check_password(password):
+            return Response({'error': 'This account has been deactivated. Please contact support.'}, status=status.HTTP_403_FORBIDDEN)
+
     if user is None:
         user = authenticate(request, username=identifier, password=password)
-        if user is None and not candidate:
-            candidate = User.objects.filter(username__iexact=identifier).first()
 
-    # Resilient customer recovery: Ensure praveen_tzy or manager can seamlessly log in
-    if user is None and candidate is not None:
-        if candidate.username.lower() == 'praveen_tzy':
-            candidate.set_password(password)
-            candidate.save()
-            user = candidate
-        elif candidate.username.lower() == 'manager' and password.strip().lower() in ['manager@123', 'manager']:
-            candidate.set_password('Manager@123')
-            candidate.save()
-            user = candidate
+    if user is None:
+        return Response({'error': 'Invalid username/email or password.'}, status=status.HTTP_401_UNAUTHORIZED)
 
-    if user is not None:
-        profile, _ = UserProfile.objects.get_or_create(
-            user=user,
-            defaults={'role': UserRole.MANAGER if (user.is_staff or user.is_superuser) else UserRole.CUSTOMER}
-        )
+    if not user.is_active:
+        return Response({'error': 'This account has been deactivated. Please contact support.'}, status=status.HTTP_403_FORBIDDEN)
 
-        is_mgr = profile.is_manager or user.is_staff or user.is_superuser
+    profile, _ = UserProfile.objects.get_or_create(
+        user=user,
+        defaults={'role': UserRole.MANAGER if (user.is_staff or user.is_superuser) else UserRole.CUSTOMER}
+    )
 
-        # Role enforcement if manager portal was specified
-        if expected_portal == 'manager' and not is_mgr:
-            return Response({
-                'error': 'Access denied: Manager privileges are required to sign in to the Manager Portal.'
-            }, status=status.HTTP_403_FORBIDDEN)
+    is_mgr = profile.is_manager or user.is_staff or user.is_superuser
 
-        # Note: Do not call Django login(request, user) here to prevent origin-wide sessionid cookie
-        # collisions across different tabs. Multi-tab role isolation is achieved via token authentication.
-        token, _ = Token.objects.get_or_create(user=user)
-        serializer = UserSerializer(user)
-        return Response({'message': 'Login successful.', 'token': token.key, 'user': serializer.data})
+    # Role enforcement if manager portal was specified
+    if expected_portal == 'manager' and not is_mgr:
+        return Response({
+            'error': 'Access denied: Manager privileges are required to sign in to the Manager Portal.'
+        }, status=status.HTTP_403_FORBIDDEN)
 
-    return Response({'error': 'Invalid username/email or password.'}, status=status.HTTP_401_UNAUTHORIZED)
+    # Update last login timestamp
+    user.last_login = timezone.now()
+    user.save(update_fields=['last_login'])
+
+    token, _ = Token.objects.get_or_create(user=user)
+    serializer = UserSerializer(user)
+    return Response({'message': 'Login successful.', 'token': token.key, 'user': serializer.data})
 
 
+@csrf_exempt
 @api_view(['POST'])
+@permission_classes([permissions.AllowAny])
 def logout_user(request):
+    """
+    Clear authentication credentials. Safe for all clients without 401 exceptions.
+    """
     if request.user and request.user.is_authenticated:
         Token.objects.filter(user=request.user).delete()
     return Response({'message': 'Logged out successfully.'})
+
+
+@api_view(['GET'])
+@permission_classes([IsManagerOrAdmin])
+def list_customers(request):
+    """
+    Manager endpoint to view all registered customers and their return statistics.
+    Never exposes passwords or sensitive authentication credentials.
+    """
+    search_q = request.query_params.get('search', '').strip()
+    customers_qs = User.objects.filter(
+        Q(profile__role=UserRole.CUSTOMER) | Q(is_staff=False, is_superuser=False)
+    ).select_related('profile').annotate(
+        returns_count=Count('return_requests')
+    ).order_by('-date_joined')
+
+    if search_q:
+        customers_qs = customers_qs.filter(
+            Q(username__icontains=search_q) |
+            Q(email__icontains=search_q) |
+            Q(first_name__icontains=search_q) |
+            Q(last_name__icontains=search_q)
+        )
+
+    serializer = CustomerListSerializer(customers_qs, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsManagerOrAdmin])
+def toggle_customer_status(request, pk):
+    """
+    Manager endpoint to deactivate or activate a customer account safely
+    without deleting customer records or historical return requests.
+    """
+    try:
+        target_user = User.objects.get(pk=pk)
+    except User.DoesNotExist:
+        return Response({'error': 'Customer account not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if target_user.is_superuser or (hasattr(target_user, 'profile') and target_user.profile.is_manager):
+        return Response({'error': 'Cannot modify manager or administrator accounts through this action.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    target_user.is_active = not target_user.is_active
+    target_user.save(update_fields=['is_active'])
+
+    AuditLog.objects.create(
+        user=request.user,
+        action='CUSTOMER_STATUS_TOGGLED',
+        entity_type='User',
+        entity_id=str(target_user.id),
+        details={
+            'username': target_user.username,
+            'is_active': target_user.is_active
+        }
+    )
+
+    action_str = 'activated' if target_user.is_active else 'deactivated'
+    return Response({
+        'message': f"Customer account '{target_user.username}' successfully {action_str}.",
+        'is_active': target_user.is_active
+    })
 
 
 @api_view(['GET', 'PUT', 'PATCH'])

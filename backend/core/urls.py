@@ -6,6 +6,8 @@ from .views import (
     login_user,
     logout_user,
     current_user,
+    list_customers,
+    toggle_customer_status,
     dashboard_metrics,
     CategoryViewSet,
     SubcategoryViewSet,
@@ -36,6 +38,10 @@ urlpatterns = [
     path('auth/logout/', logout_user, name='logout'),
     path('auth/me/', current_user, name='current-user'),
     path('auth/profile/', current_user, name='update-profile'),
+
+    # Manager Customer Management
+    path('customers/', list_customers, name='manager-customers'),
+    path('customers/<int:pk>/toggle-status/', toggle_customer_status, name='manager-toggle-customer-status'),
 
     # Dashboard Metrics
     path('metrics/dashboard/', dashboard_metrics, name='dashboard-metrics'),

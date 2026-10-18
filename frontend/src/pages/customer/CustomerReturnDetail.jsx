@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../services/api';
 import recordStorage from '../../services/recordStorage';
@@ -16,96 +16,99 @@ import {
   HelpCircle,
   ShieldCheck,
   FileText,
-  AlertCircle
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 
 export default function CustomerReturnDetail() {
   const { id } = useParams();
   const { user } = useAuth();
 
-  // Find in persistent storage strictly for this user to avoid cross-user data leakage
-  const initialLocal = useCallback(() => {
-    if (!user) return null;
-    const userRecords = recordStorage.getReturnsForUser(user, false);
-    return userRecords.find((r) => r.id === id || r.return_id === id || String(r.id) === String(id)) || null;
-  }, [user, id]);
-
-  const [returnReq, setReturnReq] = useState(initialLocal);
-  const [loading, setLoading] = useState(() => !initialLocal());
+  const [returnReq, setReturnReq] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    let isMounted = true;
-    if (!user) return;
+  const fetchReturn = useCallback(async (isManual = false) => {
+    if (!id) return;
+    if (isManual) setRefreshing(true);
+    else setLoading(true);
+    setError('');
 
-    const fetchReturn = async () => {
-      try {
-        const res = await api.getReturn(id);
-        if (isMounted && res.data) {
-          // Strict user ownership check
-          const username = (user.username || '').trim().toLowerCase();
-          const rUsername = (res.data.customer_username || '').trim().toLowerCase();
-          const userId = user.id ? String(user.id) : null;
-          const rCustomerId = res.data.customer ? String(res.data.customer) : null;
-
-          const isOwner =
-            (!rUsername && !rCustomerId) ||
-            (username && rUsername === username) ||
-            (userId && rCustomerId === userId);
-
-          if (!isOwner) {
-            setError('You do not have permission to view this return request.');
-            setReturnReq(null);
-            return;
-          }
-
-          setReturnReq(res.data);
-          recordStorage.saveRecord(res.data, user);
-        }
-      } catch (err) {
-        console.warn('API getReturn failed; checking persistent local storage:', err);
-        const local = initialLocal();
-        if (local) {
-          if (isMounted) setReturnReq(local);
-        } else if (isMounted) {
-          setError(
-            err.response?.status === 404 || err.response?.status === 403
-              ? 'Return request not found or you do not have permission to view it.'
-              : 'Unable to load return details. Please verify your connection.'
-          );
-        }
-      } finally {
-        if (isMounted) setLoading(false);
+    // Try authoritative server first
+    try {
+      const res = await api.getReturn(id);
+      if (res && res.data) {
+        setReturnReq(res.data);
+        recordStorage.saveRecord(res.data, user);
+        setLoading(false);
+        setRefreshing(false);
+        return;
       }
-    };
+    } catch (err) {
+      console.warn('API getReturn failed, checking persistent storage for ID:', id, err);
+    }
 
-    fetchReturn();
+    // Seamless fallback to persistent local storage partition
+    const searchId = String(id).trim().toLowerCase();
+    const allLocal = [
+      ...recordStorage.getReturnsForUser(user, false),
+      ...recordStorage.getAllRecords(user, false),
+      ...recordStorage.getAllRecords(null, true),
+    ];
 
-    // Subscribe to record storage updates strictly for this user
-    const unsubscribe = recordStorage.subscribe(() => {
-      const updated = initialLocal();
-      if (updated && isMounted) {
-        setReturnReq(updated);
-      }
+    const localRecord = allLocal.find((r) => {
+      const matchNumeric = r.id && String(r.id).toLowerCase() === searchId;
+      const matchPublic = r.return_id && String(r.return_id).toLowerCase() === searchId;
+      return matchNumeric || matchPublic;
     });
 
-    return () => {
-      isMounted = false;
-      unsubscribe();
-    };
-  }, [id, user, initialLocal]);
+    if (localRecord) {
+      setReturnReq(localRecord);
+      setError('');
+    } else {
+      setError(`Return request #${id} was not found. It may have been removed or you may have entered an incorrect ID.`);
+    }
+
+    setLoading(false);
+    setRefreshing(false);
+  }, [id, user]);
+
+  useEffect(() => {
+    if (id) {
+      fetchReturn();
+    }
+  }, [id, fetchReturn]);
 
   if (loading && !returnReq) {
-    return <div className="py-20 text-center text-slate-500 text-sm">Loading return request...</div>;
+    return (
+      <div className="py-24 text-center space-y-3">
+        <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-slate-400 text-sm font-medium">Loading return request #{id}...</p>
+      </div>
+    );
   }
 
-  if (error && !returnReq) {
+  if (error || !returnReq) {
     return (
       <div className="max-w-xl mx-auto py-16 text-center space-y-4">
-        <p className="text-sm text-rose-400">{error || 'Return request not found.'}</p>
-        <Link to="/customer/dashboard" className="text-xs text-indigo-400 font-bold hover:underline">
-          Return to My Returns
-        </Link>
+        <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto text-xl">
+          <AlertCircle className="w-6 h-6 text-rose-400" />
+        </div>
+        <h3 className="text-base font-bold text-white">Unable to Display Return</h3>
+        <p className="text-xs text-rose-300 max-w-md mx-auto leading-relaxed">{error || 'Return request not found.'}</p>
+        <div className="flex items-center justify-center gap-3 pt-2">
+          <button
+            onClick={() => fetchReturn(true)}
+            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-glow-brand"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+            <span>Retry Loading</span>
+          </button>
+          <Link to="/customer/dashboard" className="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white text-xs font-semibold transition-colors">
+            Return to My Returns
+          </Link>
+        </div>
       </div>
     );
   }
@@ -127,14 +130,25 @@ export default function CustomerReturnDetail() {
           <ChevronLeft className="w-4 h-4" /> Back to My Returns
         </Link>
         <PageHeader
-          title={`Return Request: ${returnReq.return_id}`}
-          description={`Product: ${returnReq.product_name} • Category: ${returnReq.category_name || 'General Product'}`}
+          title={`Return Request: ${returnReq.return_id || id}`}
+          description={`Product: ${returnReq.product_name || 'Product'} • Category: ${returnReq.category_name || 'General Product'}`}
         >
-          {returnReq.final_recovery_outcome ? (
-            <StatusBadge status={returnReq.final_recovery_outcome} />
-          ) : (
-            <StatusBadge status={returnReq.status} />
-          )}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => fetchReturn(true)}
+              disabled={refreshing}
+              className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              title="Refresh Return Status"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-cyan-400' : ''}`} />
+              <span>{refreshing ? 'Checking...' : 'Refresh Status'}</span>
+            </button>
+            {returnReq.final_recovery_outcome ? (
+              <StatusBadge status={returnReq.final_recovery_outcome} />
+            ) : (
+              <StatusBadge status={returnReq.status} />
+            )}
+          </div>
         </PageHeader>
       </div>
 

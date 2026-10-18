@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import api from '../../services/api';
-import recordStorage from '../../services/recordStorage';
 import PageHeader from '../../components/common/PageHeader';
 import StatusBadge from '../../components/common/StatusBadge';
 import ProductThumbnail from '../../components/common/ProductThumbnail';
@@ -17,7 +16,8 @@ import {
   Trash2,
   AlertTriangle,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 
 export default function ReturnQueue() {
@@ -29,10 +29,10 @@ export default function ReturnQueue() {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Initialize immediately from persistent manager storage
-  const [returns, setReturns] = useState(() => recordStorage.getAllRecords(null, true));
-  const [loading, setLoading] = useState(() => recordStorage.getAllRecords(null, true).length === 0);
+  const [returns, setReturns] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
 
   // Record deletion state
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -45,29 +45,23 @@ export default function ReturnQueue() {
     setStatusFilter(searchParams.get('status') || '');
   }, [searchParams]);
 
-  const applyLocalFilters = useCallback((recordsList) => {
-    let list = recordsList;
-    if (statusFilter) {
-      list = list.filter((r) => r.status === statusFilter || r.final_recovery_outcome === statusFilter);
-    }
-    if (categoryFilter) {
-      list = list.filter((r) => r.category_slug === categoryFilter || (r.category && r.category.slug === categoryFilter) || (r.category_name && r.category_name.toLowerCase().includes(categoryFilter.toLowerCase())));
-    }
-    if (searchQuery.trim()) {
-      const q = searchQuery.trim().toLowerCase();
-      list = list.filter((r) =>
-        (r.return_id && r.return_id.toLowerCase().includes(q)) ||
-        (r.product_name && r.product_name.toLowerCase().includes(q)) ||
-        (r.sku && r.sku.toLowerCase().includes(q)) ||
-        (r.customer_username && r.customer_username.toLowerCase().includes(q))
-      );
-    }
-    return list;
-  }, [statusFilter, categoryFilter, searchQuery]);
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const res = await api.getCategories();
+        const list = Array.isArray(res.data) ? res.data : (res.data.results || []);
+        setCategories(list);
+      } catch (e) {
+        console.warn('Failed to load categories:', e);
+      }
+    };
+    loadCategories();
+  }, []);
 
   const fetchReturns = useCallback(async (isManualRefresh = false) => {
     if (isManualRefresh) setRefreshing(true);
     else setLoading(true);
+    setError('');
 
     try {
       const params = {};
@@ -76,28 +70,21 @@ export default function ReturnQueue() {
       if (searchQuery.trim()) params.search = searchQuery.trim();
 
       const res = await api.getReturns(params);
-      const rawData = res.data.results || res.data || [];
-      // Merge authoritative server records with persistent local records
-      const allMerged = recordStorage.mergeServerRecords(rawData, null, true);
-      setReturns(applyLocalFilters(allMerged));
+      const rawData = Array.isArray(res.data) ? res.data : (res.data.results || []);
+      setReturns(rawData);
     } catch (err) {
-      console.warn('Backend getReturns failed; displaying persistent records from storage:', err);
-      const allLocal = recordStorage.getAllRecords(null, true);
-      setReturns(applyLocalFilters(allLocal));
+      console.error('Backend getReturns failed:', err);
+      const msg = err.response?.data?.error || err.response?.data?.detail || 'Unable to retrieve returns from the database. Please click Refresh.';
+      setError(msg);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [statusFilter, categoryFilter, searchQuery, applyLocalFilters]);
+  }, [statusFilter, categoryFilter, searchQuery]);
 
-  // Subscribe to persistent storage updates
   useEffect(() => {
-    const unsubscribe = recordStorage.subscribe(() => {
-      const allLocal = recordStorage.getAllRecords(null, true);
-      setReturns(applyLocalFilters(allLocal));
-    });
-    return unsubscribe;
-  }, [applyLocalFilters]);
+    fetchReturns();
+  }, [fetchReturns]);
 
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
@@ -105,42 +92,25 @@ export default function ReturnQueue() {
     setDeleteError('');
     try {
       await api.deleteReturn(deleteTarget.id);
-      recordStorage.deleteRecord(deleteTarget.id);
       setReturns((prev) => prev.filter((r) => r.id !== deleteTarget.id));
       setDeleteNotification(`Return record ${deleteTarget.return_id} has been permanently deleted from the queue.`);
       setDeleteTarget(null);
       setTimeout(() => setDeleteNotification(''), 5000);
     } catch (err) {
-      setDeleteError(err.response?.data?.error || 'Failed to delete return record. Please try again.');
+      setDeleteError(err.response?.data?.error || 'Failed to delete return record from database.');
     } finally {
       setDeleting(false);
     }
   };
-
-  useEffect(() => {
-    const fetchCats = async () => {
-      try {
-        const res = await api.getCategories();
-        setCategories(res.data.results || res.data || []);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchCats();
-  }, []);
-
-  useEffect(() => {
-    fetchReturns();
-  }, [fetchReturns]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     fetchReturns();
   };
 
-  const allRecordsCount = recordStorage.getAllRecords(null, true).length;
-  const pendingCount = recordStorage.getAllRecords(null, true).filter((r) => r.status === 'AWAITING_MANAGER_APPROVAL' || r.status === 'AWAITING_INSPECTION').length;
-  const approvedCount = recordStorage.getAllRecords(null, true).filter((r) => Boolean(r.final_recovery_outcome)).length;
+  const allRecordsCount = returns.length;
+  const pendingCount = returns.filter((r) => r.status === 'AWAITING_MANAGER_APPROVAL' || r.status === 'AWAITING_INSPECTION').length;
+  const approvedCount = returns.filter((r) => Boolean(r.final_recovery_outcome)).length;
 
   return (
     <div className="space-y-6">
@@ -157,6 +127,22 @@ export default function ReturnQueue() {
           <span>{refreshing ? 'Refreshing...' : 'Refresh Queue'}</span>
         </button>
       </PageHeader>
+
+      {/* Error Alert */}
+      {error && (
+        <div className="p-3.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+          <button
+            onClick={() => fetchReturns(true)}
+            className="px-3 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 font-semibold"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Delete Notification Toast/Alert */}
       {deleteNotification && (

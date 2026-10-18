@@ -1,13 +1,21 @@
 import React, { useState } from 'react';
 import { Package, Headphones, Shirt, Cpu, Smartphone, Laptop, Watch, ShoppingBag } from 'lucide-react';
 
-const BACKEND_BASE = 'https://return-rescue.onrender.com';
-
 export function resolveImageUrl(url) {
   if (!url) return '';
   if (url.startsWith('data:') || url.startsWith('blob:')) return url;
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  return `${BACKEND_BASE}${url.startsWith('/') ? '' : '/'}${url}`;
+
+  const envBase = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE)
+    ? import.meta.env.VITE_API_BASE.replace(/\/+$/, '').replace(/\/api$/, '')
+    : '';
+
+  const fallbackBase = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+    ? 'http://localhost:8000'
+    : 'https://return-rescue.onrender.com';
+
+  const base = envBase || fallbackBase;
+  return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
 }
 
 function getCategoryIcon(categoryName = '') {

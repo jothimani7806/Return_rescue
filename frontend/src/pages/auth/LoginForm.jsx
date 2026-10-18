@@ -44,19 +44,6 @@ export default function LoginForm({ initialPortal = 'customer' }) {
     }
   }, [initialPortal]);
 
-  // One-click demo credential filler
-  const handleDemoFill = (selectedRole) => {
-    setPortal(selectedRole);
-    setError('');
-    if (selectedRole === 'customer') {
-      setIdentifier('customer');
-      setPassword('Customer@123');
-    } else {
-      setIdentifier('manager');
-      setPassword('Manager@123');
-    }
-  };
-
   const handlePortalChange = (newPortal) => {
     setPortal(newPortal);
     setError('');
@@ -225,7 +212,7 @@ export default function LoginForm({ initialPortal = 'customer' }) {
                     setIdentifier(e.target.value);
                     if (error) setError('');
                   }}
-                  placeholder={portal === 'manager' ? 'manager' : 'customer'}
+                  placeholder={portal === 'manager' ? 'username or work email' : 'username or email address'}
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700/80 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 transition-all shadow-inner"
                 />
               </div>
@@ -307,37 +294,6 @@ export default function LoginForm({ initialPortal = 'customer' }) {
               )}
             </button>
           </form>
-
-          {/* Quick Demo Fill Buttons for Fast Testing */}
-          <div className="mt-6 pt-5 border-t border-slate-800/80">
-            <span className="text-[11px] font-mono text-slate-500 block mb-2.5">
-              ONE-CLICK DEMO CREDENTIALS:
-            </span>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                id="btn-demo-customer"
-                onClick={() => handleDemoFill('customer')}
-                className="py-1.5 px-2.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-emerald-500/40 text-[11px] text-slate-300 hover:text-emerald-300 font-medium transition-colors flex items-center justify-center gap-1.5 text-center"
-              >
-                <ShoppingBag className="w-3 h-3 text-emerald-400" />
-                <span>Customer Demo</span>
-              </button>
-              <button
-                type="button"
-                id="btn-demo-manager"
-                onClick={() => handleDemoFill('manager')}
-                className="py-1.5 px-2.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-indigo-500/40 text-[11px] text-slate-300 hover:text-indigo-300 font-medium transition-colors flex items-center justify-center gap-1.5 text-center"
-              >
-                <ShieldCheck className="w-3 h-3 text-indigo-400" />
-                <span>Manager Demo</span>
-              </button>
-            </div>
-            <div className="mt-2.5 text-[10px] text-slate-500 text-center flex flex-col gap-0.5 font-mono">
-              <span>Demo: <span className="text-emerald-400 font-semibold">customer</span> / <span className="text-emerald-400">Customer@123</span> &bull; <span className="text-indigo-400 font-semibold">manager</span> / <span className="text-indigo-400">Manager@123</span></span>
-              <span className="text-slate-400">Registered users: use username/email & password created at registration</span>
-            </div>
-          </div>
 
           {/* Customer Registration Link */}
           {portal === 'customer' && (

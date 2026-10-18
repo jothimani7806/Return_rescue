@@ -79,11 +79,13 @@ export function AuthProvider({ children }) {
         localStorage.setItem('return_rescue_customer_token', token);
         localStorage.setItem('return_rescue_customer_user', JSON.stringify(userData));
       }
-    } catch {
-      // Clear current tab tokens on verification failure
-      sessionStorage.removeItem('return_rescue_token');
-      sessionStorage.removeItem('return_rescue_user');
-      setUser(null);
+    } catch (err) {
+      // Only clear tokens if the backend explicitly reports unauthorized (401)
+      if (err.response?.status === 401) {
+        sessionStorage.removeItem('return_rescue_token');
+        sessionStorage.removeItem('return_rescue_user');
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }
