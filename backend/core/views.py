@@ -394,7 +394,10 @@ class ReturnRequestViewSet(viewsets.ModelViewSet):
         return [IsManagerOrAdmin()]
 
     def get_queryset(self):
-        user = self.request.user
+        user = getattr(self.request, 'user', None)
+        if not user or not user.is_authenticated:
+            return ReturnRequest.objects.none()
+
         qs = ReturnRequest.objects.all().select_related(
             'customer', 'category', 'subcategory', 'product',
             'ai_inspection', 'recommendation', 'decision', 'repair_record'
@@ -1018,9 +1021,13 @@ class InventoryTransactionViewSet(viewsets.ReadOnlyModelViewSet):
 
 class NotificationViewSet(viewsets.ModelViewSet):
     serializer_class = NotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Notification.objects.filter(recipient=self.request.user)
+        user = getattr(self.request, 'user', None)
+        if not user or not user.is_authenticated:
+            return Notification.objects.none()
+        return Notification.objects.filter(recipient=user)
 
     @action(detail=True, methods=['post'])
     def mark_as_read(self, request, pk=None):
@@ -1031,7 +1038,8 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def mark_all_read(self, request):
-        Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+        if request.user and request.user.is_authenticated:
+            Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
         return Response({'status': 'all marked read'})
 
 
