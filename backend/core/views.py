@@ -60,6 +60,12 @@ from .permissions import IsManagerOrAdmin, IsOwnerOrManager
 from .rules_engine import CategoryAwareRecoveryEngine
 from .ml_inference import VisualInspectionPipeline
 from .dataset_service import DatasetAcquisitionService
+from .mongodb import (
+    save_user_to_mongodb,
+    save_customer_record_to_mongodb,
+    delete_customer_record_from_mongodb,
+    log_audit_to_mongodb
+)
 
 # ==========================================
 # AUTHENTICATION & CUSTOMER ACCOUNT VIEWS
@@ -116,6 +122,9 @@ def register_user(request):
             )
 
             token, _ = Token.objects.get_or_create(user=user)
+
+            # Persist customer user profile directly to MongoDB Atlas
+            save_user_to_mongodb(user, role=UserRole.CUSTOMER)
     except Exception as e:
         return Response({'error': f'Failed to register account: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -445,6 +454,20 @@ class ReturnRequestViewSet(viewsets.ModelViewSet):
                 'status': instance.status
             }
         )
+        # Delete from MongoDB Atlas and log
+        delete_customer_record_from_mongodb(instance.return_id)
+        log_audit_to_mongodb(
+            self.request.user,
+            'RETURN_RECORD_DELETED',
+            'ReturnRequest',
+            str(instance.id),
+            {
+                'return_id': instance.return_id,
+                'product_name': instance.product_name,
+                'customer': instance.customer.username,
+                'status': instance.status
+            }
+        )
         instance.delete()
 
     def create(self, request, *args, **kwargs):
@@ -549,6 +572,9 @@ class ReturnRequestViewSet(viewsets.ModelViewSet):
             return_request=return_req,
             notification_type='RETURN_STATUS'
         )
+
+        # Persist new customer return record to MongoDB Atlas Cloud
+        save_customer_record_to_mongodb(return_req)
 
         serializer = ReturnRequestSerializer(return_req)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -814,6 +840,22 @@ class ReturnRequestViewSet(viewsets.ModelViewSet):
             message=customer_notif_msg,
             return_request=return_req,
             notification_type='RETURN_STATUS'
+        )
+
+        # Persist decision and updated return status to MongoDB Atlas Cloud
+        save_customer_record_to_mongodb(return_req)
+        log_audit_to_mongodb(
+            request.user,
+            f"DECISION_{action_type}",
+            "ReturnRequest",
+            return_req.return_id,
+            {
+                'action_type': action_type,
+                'final_action': final_action,
+                'original_recommendation': orig_rec,
+                'is_override': is_override,
+                'override_reason': override_reason
+            }
         )
 
         return Response(ReturnRequestSerializer(return_req).data)
